@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebulaTalk - 탐색</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="explore">
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="NebulaTalk 홈">
+        <span class="brand-mark">N</span>
+        <span class="brand-text">
+          <strong>NebulaTalk</strong>
+          <small>character story chat</small>
+        </span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="chat.html">대화</a>
+        <a href="create.html">제작</a>
+        <a href="mypage.html">마이페이지</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <a class="button ghost" href="chat.html">대화창 열기</a>
+        <a class="button primary" href="create.html">캐릭터 만들기</a>
+      </div>
+    </header>
+
+    <main class="page explore-page">
+      <section class="explore-header">
+        <h1>탐색</h1>
+        <div class="explore-search-bar">
+          <input id="exploreSearchInput" type="search" placeholder="캐릭터 검색" />
+          <select id="exploreSortSelect">
+            <option value="popular">인기순</option>
+            <option value="recent">최근 활동순</option>
+            <option value="name">이름순</option>
+            <option value="favorites">즐겨찾기 우선</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <div id="exploreGenreTabs" class="genre-tabs"></div>
+      </section>
+
+      <section class="section-block">
+        <div class="section-head compact">
+          <div>
+            <span class="section-kicker">FILTER</span>
+            <h2>태그 필터</h2>
+          </div>
+          <button id="clearFiltersBtn" class="button ghost small" type="button">초기화</button>
+        </div>
+        <div id="exploreTagFilters" class="tag-cloud"></div>
+      </section>
+
+      <section class="section-block">
+        <div class="section-head compact">
+          <div>
+            <span class="section-kicker">RESULT</span>
+            <h2 id="exploreResultTitle">탐색 결과</h2>
+          </div>
+        </div>
+        <div id="exploreGrid" class="character-grid"></div>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="모바일 메뉴">
+      <a href="index.html">
+        <span class="mobile-nav-icon">⌂</span>
+        <span class="mobile-nav-label">홈</span>
+      </a>
+      <a href="chat.html">
+        <span class="mobile-nav-icon">◉</span>
+        <span class="mobile-nav-label">대화</span>
+      </a>
+      <a href="create.html">
+        <span class="mobile-nav-icon">＋</span>
+        <span class="mobile-nav-label">제작</span>
+      </a>
+      <a href="mypage.html">
+        <span class="mobile-nav-icon">◔</span>
+        <span class="mobile-nav-label">마이페이지</span>
+      </a>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>

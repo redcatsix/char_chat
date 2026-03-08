@@ -1,0 +1,9 @@
+{
+  "name": "char_chat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NebulaTalk character chat with DeepInfra proxy",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

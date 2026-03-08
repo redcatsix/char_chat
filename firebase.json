@@ -1,0 +1,28 @@
+{
+  "functions": {
+    "source": "functions"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "server.js",
+      "README.md",
+      "package.json",
+      ".env",
+      ".env.example"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/chat",
+        "function": {
+          "functionId": "apiChat",
+          "region": "us-central1"
+        }
+      }
+    ]
+  }
+}

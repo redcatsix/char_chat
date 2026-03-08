@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebulaTalk - 대화</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="chat">
+  <div class="app-shell">
+    <header class="topbar chat-topbar">
+      <a class="chat-back-btn" href="index.html" aria-label="뒤로가기">←</a>
+      <div id="chatTopbarInfo" class="chat-topbar-info">
+        <strong>대화를 선택하세요</strong>
+      </div>
+      <div class="chat-topbar-actions">
+        <button id="chatSidebarToggle" class="button ghost small" type="button">목록</button>
+        <button id="chatSettingsToggle" class="button ghost small" type="button">설정</button>
+      </div>
+    </header>
+
+    <main class="page chat-page">
+      <div class="chat-layout">
+        <aside class="card chat-sidebar" id="chatSidebar">
+          <div class="sidebar-head">
+            <div>
+              <span class="section-kicker">CHARACTERS</span>
+              <h2>대화 목록</h2>
+            </div>
+            <a class="button ghost small" href="explore.html">탐색</a>
+          </div>
+
+          <label class="search-inline">
+            <span class="sr-only">캐릭터 목록 검색</span>
+            <input id="chatCharacterSearch" type="search" placeholder="캐릭터 검색" />
+          </label>
+
+          <div id="chatCharacterList" class="chat-character-list"></div>
+        </aside>
+
+        <section class="card chat-main">
+          <header id="chatHeader" class="chat-header"></header>
+
+          <div class="chat-notice">
+            <div class="chat-notice-head">
+              <strong>DeepInfra <code>deepseek-ai/DeepSeek-V3.2</code></strong>
+              <span id="aiStatusBadge" class="ai-status waiting">연결 대기</span>
+            </div>
+            <p class="chat-notice-copy">서버 템플릿 기반으로 응답하며, 연결 실패 시에는 자동으로 목업 응답으로 전환됩니다.</p>
+          </div>
+
+          <div id="chatMessages" class="chat-messages"></div>
+
+          <form id="chatComposer" class="chat-composer">
+            <textarea
+              id="chatInput"
+              rows="1"
+              placeholder="메시지를 입력하세요. Shift + Enter로 줄바꿈"
+            ></textarea>
+            <div class="composer-actions">
+              <button id="resetChatBtn" class="button ghost" type="button">대화 초기화</button>
+              <button class="button primary" type="submit">전송</button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="card chat-sidepanel" id="chatSidepanel">
+          <div class="sidebar-head">
+            <div>
+              <span class="section-kicker">STORY STYLE</span>
+              <h2>응답 스타일</h2>
+            </div>
+          </div>
+
+          <form id="styleForm" class="style-form">
+            <label>
+              <span>시점</span>
+              <select name="pov">
+                <option value="first">1인칭</option>
+                <option value="second">2인칭</option>
+                <option value="third" selected>3인칭</option>
+              </select>
+            </label>
+            <label>
+              <span>응답 길이</span>
+              <select name="length">
+                <option value="short">짧게</option>
+                <option value="medium" selected>보통</option>
+                <option value="long">길게</option>
+              </select>
+            </label>
+            <label>
+              <span>전개 속도</span>
+              <select name="pacing">
+                <option value="fast">빠르게</option>
+                <option value="natural" selected>자연스럽게</option>
+                <option value="slow">천천히</option>
+              </select>
+            </label>
+            <label>
+              <span>톤</span>
+              <select name="tone">
+                <option value="romance">로맨틱</option>
+                <option value="slice">일상형</option>
+                <option value="mystery">미스터리</option>
+                <option value="fantasy">판타지</option>
+                <option value="soft">다정한 위로</option>
+              </select>
+            </label>
+          </form>
+
+          <div id="characterProfileCard" class="profile-card"></div>
+        </aside>
+      </div>
+    </main>
+
+    <div class="chat-overlay" id="chatOverlay"></div>
+
+    <nav class="mobile-nav" aria-label="모바일 메뉴">
+      <a href="index.html">
+        <span class="mobile-nav-icon">⌂</span>
+        <span class="mobile-nav-label">홈</span>
+      </a>
+      <a class="is-active" href="chat.html">
+        <span class="mobile-nav-icon">◉</span>
+        <span class="mobile-nav-label">대화</span>
+      </a>
+      <a href="create.html">
+        <span class="mobile-nav-icon">＋</span>
+        <span class="mobile-nav-label">제작</span>
+      </a>
+      <a href="mypage.html">
+        <span class="mobile-nav-icon">◔</span>
+        <span class="mobile-nav-label">마이페이지</span>
+      </a>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
