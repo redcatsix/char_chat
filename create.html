@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebulaTalk - 캐릭터 제작</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="create">
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="NebulaTalk 홈">
+        <span class="brand-mark">N</span>
+        <span class="brand-text">
+          <strong>NebulaTalk</strong>
+          <small>character story chat</small>
+        </span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="chat.html">대화</a>
+        <a class="is-active" href="create.html">제작</a>
+        <a href="mypage.html">마이페이지</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <a class="button ghost" href="explore.html">샘플 보기</a>
+        <a class="button primary" href="chat.html">대화창 열기</a>
+      </div>
+    </header>
+
+    <main class="page create-page">
+      <section class="card create-layout">
+        <div class="create-form-wrap">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">CREATE</span>
+              <h1>새 캐릭터 만들기</h1>
+            </div>
+          </div>
+
+          <p class="helper-text">
+            아래 템플릿 필드가 그대로 AI 프롬프트 템플릿에 매핑됩니다.
+            저장 후 채팅에서 바로 연결 상태를 확인할 수 있습니다.
+          </p>
+
+          <form id="createCharacterForm" class="create-form">
+            <div class="form-grid two-col">
+              <label>
+                <span>캐릭터 이름</span>
+                <input type="text" name="name" placeholder="예: 서하준" required />
+              </label>
+              <label>
+                <span>대표 이모지</span>
+                <input type="text" name="avatar" placeholder="예: 🌙" maxlength="2" />
+              </label>
+            </div>
+
+            <div class="form-grid two-col">
+              <label>
+                <span>커버 이미지 URL (선택)</span>
+                <input type="text" name="cover" placeholder="https://... 또는 업로드로 자동 입력" />
+              </label>
+              <label>
+                <span>썸네일 업로드</span>
+                <input type="file" name="coverFile" accept="image/*" />
+              </label>
+            </div>
+
+            <label>
+              <span>한 줄 소개</span>
+              <input type="text" name="headline" placeholder="예: 냉정하지만 은근히 다정한 전략가" required />
+            </label>
+
+            <label>
+              <span>캐릭터 성격 / 설정</span>
+              <textarea name="personality" rows="4" placeholder="말투, 성격, 세계관, 관계성 등을 적어주세요." required></textarea>
+            </label>
+
+            <label>
+              <span>첫 인사</span>
+              <textarea name="greeting" rows="3" placeholder="유저가 처음 들어왔을 때 캐릭터가 건넬 첫 대사" required></textarea>
+            </label>
+
+            <label>
+              <span>시나리오</span>
+              <textarea name="scenario" rows="3" placeholder="예: 계약 관계로 시작한 두 사람이 비밀 임무를 함께 수행한다."></textarea>
+            </label>
+
+            <div class="form-grid two-col">
+              <label>
+                <span>태그</span>
+                <input type="text" name="tags" placeholder="#로맨스, #판타지, #느와르" />
+              </label>
+              <label>
+                <span>공개 범위</span>
+                <select name="visibility">
+                  <option value="public">공개</option>
+                  <option value="private">비공개</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="section-head compact form-subhead">
+              <div>
+                <span class="section-kicker">STYLE</span>
+                <h2>기본 응답 스타일</h2>
+              </div>
+            </div>
+
+            <div class="form-grid four-col">
+              <label>
+                <span>시점</span>
+                <select name="pov">
+                  <option value="first">1인칭</option>
+                  <option value="second">2인칭</option>
+                  <option value="third" selected>3인칭</option>
+                </select>
+              </label>
+              <label>
+                <span>응답 길이</span>
+                <select name="length">
+                  <option value="short">짧게</option>
+                  <option value="medium" selected>보통</option>
+                  <option value="long">길게</option>
+                </select>
+              </label>
+              <label>
+                <span>전개 속도</span>
+                <select name="pacing">
+                  <option value="fast">빠르게</option>
+                  <option value="natural" selected>자연스럽게</option>
+                  <option value="slow">천천히</option>
+                </select>
+              </label>
+              <label>
+                <span>톤</span>
+                <select name="tone">
+                  <option value="romance" selected>로맨틱</option>
+                  <option value="slice">일상형</option>
+                  <option value="mystery">미스터리</option>
+                  <option value="fantasy">판타지</option>
+                  <option value="soft">다정한 위로</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-grid actions-grid">
+              <button class="button ghost" type="reset">입력 초기화</button>
+              <button class="button primary" type="submit">저장하고 대화 시작</button>
+            </div>
+          </form>
+        </div>
+
+        <aside class="create-preview-wrap">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">PREVIEW</span>
+              <h2>미리보기</h2>
+            </div>
+          </div>
+          <div id="createPreviewCard" class="card preview-card"></div>
+          <div class="card preview-card template-map">
+            <strong>AI 템플릿 매핑</strong>
+            <ul class="check-list">
+              <li>이름 + 소개 + 성격 + 시나리오를 system prompt에 반영</li>
+              <li>첫 인사는 초기 메시지로 저장되어 첫 맥락에 사용</li>
+              <li>시점/길이/속도/톤은 기본 응답 스타일로 전달</li>
+              <li>태그/공개 여부는 캐릭터 메타 정보로 보존</li>
+            </ul>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+        <nav class="mobile-nav" aria-label="모바일 메뉴">
+      <a href="index.html">
+        <span class="mobile-nav-icon">⌂</span>
+        <span class="mobile-nav-label">홈</span>
+      </a>
+      <a href="chat.html">
+        <span class="mobile-nav-icon">◉</span>
+        <span class="mobile-nav-label">대화</span>
+      </a>
+      <a class="is-active" href="create.html">
+        <span class="mobile-nav-icon">＋</span>
+        <span class="mobile-nav-label">제작</span>
+      </a>
+      <a href="mypage.html">
+        <span class="mobile-nav-icon">◔</span>
+        <span class="mobile-nav-label">마이페이지</span>
+      </a>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
