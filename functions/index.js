@@ -7,22 +7,14 @@ const deepinfraApiKey = defineSecret('DEEPINFRA_API_KEY');
 const API_URL = 'https://api.deepinfra.com/v1/openai/chat/completions';
 const DEFAULT_MODEL = process.env.DEEPINFRA_MODEL || 'deepseek-ai/DeepSeek-V3.2';
 
+const MESSAGE_HISTORY_LIMIT = 30;
+const MAX_CHARACTER_NAME_LENGTH = 50;
+const MAX_MESSAGE_TEXT_LENGTH = 4000;
+
 const STYLE_LABELS = {
-  pov: {
-    first: '1인칭',
-    second: '2인칭',
-    third: '3인칭',
-  },
-  length: {
-    short: '짧게',
-    medium: '보통',
-    long: '길게',
-  },
-  pacing: {
-    fast: '빠르게',
-    natural: '자연스럽게',
-    slow: '천천히',
-  },
+  pov: { first: '1인칭', second: '2인칭', third: '3인칭' },
+  length: { short: '짧게', medium: '보통', long: '길게' },
+  pacing: { fast: '빠르게', natural: '자연스럽게', slow: '천천히' },
   tone: {
     romance: '로맨틱',
     slice: '일상형',
@@ -30,6 +22,13 @@ const STYLE_LABELS = {
     fantasy: '판타지',
     soft: '다정한 위로',
   },
+};
+
+const VALID_STYLE_VALUES = {
+  pov: new Set(Object.keys(STYLE_LABELS.pov)),
+  length: new Set(Object.keys(STYLE_LABELS.length)),
+  pacing: new Set(Object.keys(STYLE_LABELS.pacing)),
+  tone: new Set(Object.keys(STYLE_LABELS.tone)),
 };
 
 function setCors(res) {
@@ -43,21 +42,45 @@ function getStyleLabel(style, key, fallbackKey) {
   return labels[style?.[key]] || labels[fallbackKey];
 }
 
+function sanitizeString(value, maxLength) {
+  if (typeof value !== 'string') return '';
+  return value.slice(0, maxLength).trim();
+}
+
+function validateStyle(style) {
+  if (!style || typeof style !== 'object') return {};
+  const validated = {};
+  for (const key of ['pov', 'length', 'pacing', 'tone']) {
+    if (typeof style[key] === 'string' && VALID_STYLE_VALUES[key].has(style[key])) {
+      validated[key] = style[key];
+    }
+  }
+  return validated;
+}
+
 function buildSystemPrompt(character, style) {
-  const tags = Array.isArray(character?.tags) ? character.tags.join(', ') : '';
+  const name = sanitizeString(character?.name, MAX_CHARACTER_NAME_LENGTH) || '이름 미상';
+  const headline = sanitizeString(character?.headline, 200) || '소개 없음';
+  const personality = sanitizeString(character?.personality, 1000) || '설정 없음';
+  const greeting = sanitizeString(character?.greeting, 500) || '첫 인사 없음';
+  const scenario = sanitizeString(character?.scenario, 1000) || '시나리오 없음';
+  const tags = Array.isArray(character?.tags)
+    ? character.tags.filter((t) => typeof t === 'string').slice(0, 8).join(', ')
+    : '';
+  const visibility = character?.visibility === 'private' ? 'private' : 'public';
 
   return [
     '너는 캐릭터챗 전용 AI다.',
     '항상 한국어로 답변하고, 캐릭터 설정을 유지한다.',
     '메타 설명은 사용자가 요청할 때만 제공한다.',
     '[캐릭터 템플릿]',
-    `이름: ${character?.name || '이름 미상'}`,
-    `한 줄 소개: ${character?.headline || '소개 없음'}`,
-    `성격/설정: ${character?.personality || '설정 없음'}`,
-    `첫 인사: ${character?.greeting || '첫 인사 없음'}`,
-    `시나리오: ${character?.scenario || '시나리오 없음'}`,
+    `이름: ${name}`,
+    `한 줄 소개: ${headline}`,
+    `성격/설정: ${personality}`,
+    `첫 인사: ${greeting}`,
+    `시나리오: ${scenario}`,
     `태그: ${tags || '태그 없음'}`,
-    `공개 범위: ${character?.visibility || 'public'}`,
+    `공개 범위: ${visibility}`,
     '[응답 스타일]',
     `시점: ${getStyleLabel(style, 'pov', 'third')}`,
     `길이: ${getStyleLabel(style, 'length', 'medium')}`,
@@ -99,11 +122,8 @@ function normalizeChatMessage(message) {
   if (!message || typeof message !== 'object') return null;
   if (!['assistant', 'user'].includes(message.role)) return null;
   if (typeof message.text !== 'string') return null;
-
-  return {
-    role: message.role,
-    content: message.text,
-  };
+  const text = message.text.slice(0, MAX_MESSAGE_TEXT_LENGTH);
+  return { role: message.role, content: text };
 }
 
 function parseRequestBody(req) {
@@ -167,13 +187,13 @@ exports.apiChat = onRequest(
 
     const payload = parseRequestBody(req);
     const character = payload?.character || {};
-    const style = payload?.style || {};
+    const style = validateStyle(payload?.style);
     const history = Array.isArray(payload?.messages) ? payload.messages : [];
 
     const historyMessages = history
       .map(normalizeChatMessage)
       .filter(Boolean)
-      .slice(-30);
+      .slice(-MESSAGE_HISTORY_LIMIT);
 
     if (!historyMessages.some((message) => message.role === 'user')) {
       res.status(400).json({ error: 'At least one user message is required.' });
@@ -181,9 +201,7 @@ exports.apiChat = onRequest(
     }
 
     const upstreamPayload = {
-      model: typeof payload?.model === 'string' && payload.model.trim()
-        ? payload.model.trim()
-        : DEFAULT_MODEL,
+      model: DEFAULT_MODEL,
       messages: [
         { role: 'system', content: buildSystemPrompt(character, style) },
         ...historyMessages,
@@ -193,7 +211,7 @@ exports.apiChat = onRequest(
     };
 
     if (typeof payload?.user === 'string' && payload.user.trim()) {
-      upstreamPayload.user = payload.user.trim();
+      upstreamPayload.user = payload.user.trim().slice(0, 128);
     }
 
     try {
@@ -234,7 +252,7 @@ exports.apiChat = onRequest(
 
       res.status(200).json({
         reply,
-        model: data?.model || upstreamPayload.model,
+        model: data?.model || DEFAULT_MODEL,
         usage: data?.usage || null,
       });
     } catch (error) {
@@ -244,5 +262,3 @@ exports.apiChat = onRequest(
     }
   },
 );
-
-
