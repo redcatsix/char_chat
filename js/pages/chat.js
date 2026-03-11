@@ -10,6 +10,13 @@ import {
 } from '../ui.js';
 import { requestAssistantReply } from '../api.js';
 
+const state = {
+  characterId: null,
+  filter: '',
+  sending: false,
+};
+let bound = false;
+
 export function initChatPage(force = false, refreshPage) {
   const messagesRoot = document.getElementById('chatMessages');
   if (!messagesRoot) return;
@@ -29,12 +36,9 @@ export function initChatPage(force = false, refreshPage) {
   const settingsToggle = document.getElementById('chatSettingsToggle');
   const chatTopbarInfo = document.getElementById('chatTopbarInfo');
 
-  const state = window.__chatState || {
-    characterId: getSelectedCharacter(),
-    filter: '',
-    sending: false,
-  };
-  window.__chatState = state;
+  if (!state.characterId) {
+    state.characterId = getSelectedCharacter();
+  }
 
   let character = findCharacterById(state.characterId) || getAllCharacters()[0];
   if (!character) return;
@@ -51,12 +55,13 @@ export function initChatPage(force = false, refreshPage) {
     chatOverlay?.classList.remove('is-active');
   }
 
-  if (!force) {
-    getFormField(styleForm, 'pov').value = style.pov;
-    getFormField(styleForm, 'length').value = style.length;
-    getFormField(styleForm, 'pacing').value = style.pacing;
-    getFormField(styleForm, 'tone').value = style.tone;
+  // Sync form values
+  getFormField(styleForm, 'pov').value = style.pov;
+  getFormField(styleForm, 'length').value = style.length;
+  getFormField(styleForm, 'pacing').value = style.pacing;
+  getFormField(styleForm, 'tone').value = style.tone;
 
+  if (!bound) {
     sidebarToggle?.addEventListener('click', () => {
       closePanels();
       chatSidebar?.classList.add('is-open');
@@ -103,13 +108,15 @@ export function initChatPage(force = false, refreshPage) {
       renderMain(true);
 
       const reply = await requestAssistantReply(liveCharacter, nextMessages, value, currentStyle);
-      const finalMessages = [
-        ...getCharacterConversation(liveCharacter.id),
-        { id: cryptoRandomId(), role: 'assistant', text: reply, createdAt: new Date().toISOString() },
-      ];
-      setCharacterConversation(liveCharacter.id, finalMessages);
       state.sending = false;
-      updateCharacterActivity(liveCharacter.id);
+      if (reply) {
+        const finalMessages = [
+          ...getCharacterConversation(liveCharacter.id),
+          { id: cryptoRandomId(), role: 'assistant', text: reply, createdAt: new Date().toISOString() },
+        ];
+        setCharacterConversation(liveCharacter.id, finalMessages);
+        updateCharacterActivity(liveCharacter.id);
+      }
       renderMain(false);
       renderCharacterList();
     });
@@ -135,11 +142,11 @@ export function initChatPage(force = false, refreshPage) {
       renderCharacterList();
       showToast('대화를 초기화했어요');
     });
-  } else {
-    getFormField(styleForm, 'pov').value = style.pov;
-    getFormField(styleForm, 'length').value = style.length;
-    getFormField(styleForm, 'pacing').value = style.pacing;
-    getFormField(styleForm, 'tone').value = style.tone;
+
+    bound = true;
+  }
+
+  if (characterSearch) {
     characterSearch.value = state.filter || '';
   }
 

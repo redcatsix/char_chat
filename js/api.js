@@ -94,29 +94,53 @@ function buildCharacterSpecificLine(character, tone) {
 export async function requestAssistantReply(character, messages, userMessage, style) {
   updateAiStatus('checking', 'AI 연결 확인 중');
 
+  let response;
   try {
-    const response = await fetch('/api/chat', {
+    response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ character, messages, style }),
     });
-
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(payload?.error || 'Chat API request failed.');
-    }
-
-    if (typeof payload?.reply !== 'string' || !payload.reply.trim()) {
-      throw new Error('Chat API returned an invalid response.');
-    }
-
-    updateAiStatus('online', 'DeepInfra 연결됨');
-    return payload.reply.trim();
   } catch (error) {
-    console.error('[chat-api]', error);
-    updateAiStatus('fallback', '백업 응답 모드');
-    showToast('API 오류로 목업 응답을 사용해요');
+    // Network error — fall back to mock
+    console.error('[chat-api] network error:', error);
+    updateAiStatus('fallback', '네트워크 오류');
+    showToast('네트워크 오류로 백업 응답을 사용해요');
     await new Promise((resolve) => setTimeout(resolve, 500));
     return generateMockReply(character, userMessage, style);
   }
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (response.status === 429) {
+    updateAiStatus('fallback', '요청 제한');
+    showToast('요청이 너무 많아요. 잠시 후 다시 시도해 주세요.');
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return generateMockReply(character, userMessage, style);
+  }
+
+  if (response.status >= 500) {
+    console.error('[chat-api] server error:', response.status, payload);
+    updateAiStatus('fallback', '서버 오류');
+    showToast('서버 오류가 발생했어요. 백업 응답을 사용합니다.');
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return generateMockReply(character, userMessage, style);
+  }
+
+  if (!response.ok) {
+    console.error('[chat-api] request error:', response.status, payload);
+    updateAiStatus('fallback', 'API 오류');
+    showToast(payload?.error || 'API 요청에 실패했어요');
+    return null;
+  }
+
+  if (typeof payload?.reply !== 'string' || !payload.reply.trim()) {
+    console.error('[chat-api] empty response:', payload);
+    updateAiStatus('fallback', '빈 응답');
+    showToast('AI가 빈 응답을 반환했어요. 다시 시도해 주세요.');
+    return null;
+  }
+
+  updateAiStatus('online', 'DeepInfra 연결됨');
+  return payload.reply.trim();
 }

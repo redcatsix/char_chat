@@ -9,7 +9,9 @@ import {
   wireProfileModals, emptyState, createRecentCard, getConversationSummaries,
 } from '../ui.js';
 
-export function initMyPage(force = false, refreshPage) {
+let bound = false;
+
+function render(refreshPage) {
   const favoriteGrid = document.getElementById('favoriteGrid');
   const createdGrid = document.getElementById('createdGrid');
   const recentRoot = document.getElementById('mypageRecentChats');
@@ -51,10 +53,6 @@ export function initMyPage(force = false, refreshPage) {
     const el = document.getElementById(id);
     if (el) el.textContent = formatCount(value);
   });
-
-  if (!force) {
-    document.getElementById('exportDataBtn')?.addEventListener('click', exportUserData);
-  }
 }
 
 function exportUserData() {
@@ -74,4 +72,60 @@ function exportUserData() {
   anchor.click();
   URL.revokeObjectURL(url);
   showToast('내 데이터를 JSON으로 내보냈어요');
+}
+
+function importUserData() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.json';
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data || typeof data !== 'object') throw new Error('invalid format');
+
+      if (Array.isArray(data.favorites)) {
+        localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(data.favorites));
+      }
+      if (Array.isArray(data.createdCharacters)) {
+        localStorage.setItem(STORAGE_KEYS.createdCharacters, JSON.stringify(data.createdCharacters));
+      }
+      if (data.chats && typeof data.chats === 'object') {
+        // Store as per-character keys
+        for (const [id, messages] of Object.entries(data.chats)) {
+          if (Array.isArray(messages)) {
+            localStorage.setItem(`${STORAGE_KEYS.chats}:${id}`, JSON.stringify(messages));
+          }
+        }
+      }
+      if (data.stylePrefs && typeof data.stylePrefs === 'object') {
+        localStorage.setItem(STORAGE_KEYS.stylePrefs, JSON.stringify(data.stylePrefs));
+      }
+
+      showToast('데이터를 성공적으로 가져왔어요');
+      window.location.reload();
+    } catch (error) {
+      console.error('[import]', error);
+      showToast('올바른 JSON 파일이 아니에요');
+    }
+  });
+  fileInput.click();
+}
+
+function bindEvents() {
+  document.getElementById('exportDataBtn')?.addEventListener('click', exportUserData);
+  document.getElementById('importDataBtn')?.addEventListener('click', importUserData);
+}
+
+export function initMyPage(force = false, refreshPage) {
+  const favoriteGrid = document.getElementById('favoriteGrid');
+  if (!favoriteGrid) return;
+
+  if (!bound) {
+    bindEvents();
+    bound = true;
+  }
+  render(refreshPage);
 }
