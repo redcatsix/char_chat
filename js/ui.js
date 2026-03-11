@@ -141,10 +141,13 @@ export function showCharacterProfile(characterId) {
   const modal = document.createElement('div');
   modal.id = 'characterProfileModal';
   modal.className = 'profile-modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-label', `${character.name} 프로필`);
   modal.innerHTML = `
     <div class="profile-modal-backdrop"></div>
     <div class="profile-modal-content">
-      <button class="profile-modal-close" type="button">✕</button>
+      <button class="profile-modal-close" type="button" aria-label="닫기">✕</button>
       <div class="profile-modal-cover">
         ${cover
           ? `<img src="${escapeHtml(cover)}" alt="${escapeHtml(character.name)}" />`
@@ -174,11 +177,25 @@ export function showCharacterProfile(characterId) {
     </div>
   `;
   document.body.appendChild(modal);
-  modal.querySelector('.profile-modal-backdrop').addEventListener('click', () => modal.remove());
-  modal.querySelector('.profile-modal-close').addEventListener('click', () => modal.remove());
+
+  const closeModal = () => {
+    modal.remove();
+    document.removeEventListener('keydown', handleEscape);
+  };
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') closeModal();
+  };
+  document.addEventListener('keydown', handleEscape);
+
+  modal.querySelector('.profile-modal-backdrop').addEventListener('click', closeModal);
+  modal.querySelector('.profile-modal-close').addEventListener('click', closeModal);
   modal.querySelector('a.button').addEventListener('click', () => {
     setSelectedCharacter(character.id);
   });
+
+  // Focus trap: focus the close button
+  const closeBtn = modal.querySelector('.profile-modal-close');
+  if (closeBtn) closeBtn.focus();
 }
 
 export function renderGenreTabs(containerId, activeGenre, onSelect) {

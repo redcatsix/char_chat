@@ -8,6 +8,10 @@ import { setStoredArray } from '../storage.js';
 import {
   escapeHtml, showToast, normalizeTags, getFormField, readFileAsDataUrl,
 } from '../utils.js';
+import { saveCoverImage } from '../image-store.js';
+
+let bound = false;
+let pendingCoverDataUrl = null;
 
 function labelPov(value) {
   return STYLE_LABELS.pov[value] || '3인칭';
@@ -79,6 +83,16 @@ function collectCreateFormData(form) {
   };
 }
 
+function syncPreview(form, previewCard, overrideCover) {
+  const data = collectCreateFormData(form);
+  if (overrideCover) {
+    data.cover = overrideCover;
+  } else if (data.cover === '__pending_upload__' && pendingCoverDataUrl) {
+    data.cover = pendingCoverDataUrl;
+  }
+  previewCard.innerHTML = renderCreatePreview(data);
+}
+
 export function initCreatePage(force = false) {
   const form = document.getElementById('createCharacterForm');
   const previewCard = document.getElementById('createPreviewCard');
@@ -87,41 +101,23 @@ export function initCreatePage(force = false) {
   const duplicateId = getUrlQueryParam('duplicate');
   const duplicateSource = duplicateId ? findCharacterById(duplicateId) : null;
 
-  const initial = window.__createState || {
-    name: duplicateSource?.name || '',
-    avatar: duplicateSource?.avatar || '',
-    cover: duplicateSource?.cover || '',
-    headline: duplicateSource?.headline || '',
-    personality: duplicateSource?.personality || '',
-    greeting: duplicateSource?.greeting || '',
-    scenario: duplicateSource?.scenario || '',
-    tags: (duplicateSource?.tags || []).join(', '),
-    visibility: duplicateSource?.visibility || 'public',
-    style: {
-      pov: duplicateSource?.style?.pov || 'third',
-      length: duplicateSource?.style?.length || 'medium',
-      pacing: duplicateSource?.style?.pacing || 'natural',
-      tone: duplicateSource?.style?.tone || 'romance',
-    },
-  };
+  if (!bound && duplicateSource) {
+    getFormField(form, 'name').value = duplicateSource.name || '';
+    getFormField(form, 'avatar').value = duplicateSource.avatar || '';
+    getFormField(form, 'cover').value = duplicateSource.cover || '';
+    getFormField(form, 'headline').value = duplicateSource.headline || '';
+    getFormField(form, 'personality').value = duplicateSource.personality || '';
+    getFormField(form, 'greeting').value = duplicateSource.greeting || '';
+    getFormField(form, 'scenario').value = duplicateSource.scenario || '';
+    getFormField(form, 'tags').value = (duplicateSource.tags || []).join(', ');
+    getFormField(form, 'visibility').value = duplicateSource.visibility || 'public';
+    getFormField(form, 'pov').value = duplicateSource.style?.pov || 'third';
+    getFormField(form, 'length').value = duplicateSource.style?.length || 'medium';
+    getFormField(form, 'pacing').value = duplicateSource.style?.pacing || 'natural';
+    getFormField(form, 'tone').value = duplicateSource.style?.tone || 'romance';
+  }
 
-  window.__createState = initial;
-
-  if (!force) {
-    getFormField(form, 'name').value = initial.name;
-    getFormField(form, 'avatar').value = initial.avatar;
-    getFormField(form, 'cover').value = initial.cover;
-    getFormField(form, 'headline').value = initial.headline;
-    getFormField(form, 'personality').value = initial.personality;
-    getFormField(form, 'greeting').value = initial.greeting;
-    getFormField(form, 'scenario').value = initial.scenario;
-    getFormField(form, 'tags').value = initial.tags;
-    getFormField(form, 'visibility').value = initial.visibility;
-    getFormField(form, 'pov').value = initial.style.pov;
-    getFormField(form, 'length').value = initial.style.length;
-    getFormField(form, 'pacing').value = initial.style.pacing;
-    getFormField(form, 'tone').value = initial.style.tone;
-
+  if (!bound) {
     const coverFileInput = getFormField(form, 'coverFile');
     coverFileInput?.addEventListener('change', async () => {
       const file = coverFileInput.files?.[0];
@@ -139,8 +135,9 @@ export function initCreatePage(force = false) {
 
       try {
         const dataUrl = await readFileAsDataUrl(file);
-        getFormField(form, 'cover').value = dataUrl;
-        syncPreview();
+        pendingCoverDataUrl = dataUrl;
+        getFormField(form, 'cover').value = '__pending_upload__';
+        syncPreview(form, previewCard, dataUrl);
         showToast('썸네일 업로드 완료');
       } catch (error) {
         console.error('[thumbnail-upload]', error);
@@ -148,13 +145,14 @@ export function initCreatePage(force = false) {
       }
     });
 
-    form.addEventListener('input', syncPreview);
-    form.addEventListener('change', syncPreview);
+    form.addEventListener('input', () => syncPreview(form, previewCard));
+    form.addEventListener('change', () => syncPreview(form, previewCard));
     form.addEventListener('reset', () => {
-      setTimeout(syncPreview, 0);
+      pendingCoverDataUrl = null;
+      setTimeout(() => syncPreview(form, previewCard), 0);
     });
 
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const formData = collectCreateFormData(form);
       const createdCharacter = {
@@ -166,6 +164,17 @@ export function initCreatePage(force = false) {
         updatedAt: new Date().toISOString(),
         isBuiltin: false,
       };
+
+      // Save cover image to IndexedDB instead of LocalStorage
+      if (pendingCoverDataUrl && createdCharacter.cover === '__pending_upload__') {
+        try {
+          await saveCoverImage(createdCharacter.id, pendingCoverDataUrl);
+          createdCharacter.cover = `idb:${createdCharacter.id}`;
+        } catch {
+          createdCharacter.cover = '';
+        }
+        pendingCoverDataUrl = null;
+      }
 
       const created = getCreatedCharacters();
       setStoredArray(STORAGE_KEYS.createdCharacters, [createdCharacter, ...created]);
@@ -179,12 +188,9 @@ export function initCreatePage(force = false) {
       showToast('캐릭터를 저장했어요');
       window.location.href = `chat.html?character=${encodeURIComponent(createdCharacter.id)}`;
     });
+
+    bound = true;
   }
 
-  syncPreview();
-
-  function syncPreview() {
-    const data = collectCreateFormData(form);
-    previewCard.innerHTML = renderCreatePreview(data);
-  }
+  syncPreview(form, previewCard);
 }

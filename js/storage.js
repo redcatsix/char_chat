@@ -1,5 +1,6 @@
 import { STORAGE_KEYS, DEFAULT_STYLE } from './constants.js';
 import { DEFAULT_CHARACTERS } from './characters.js';
+import { getCoverImage, deleteCoverImage } from './image-store.js';
 
 function safeParse(value, fallback) {
   try {
@@ -33,19 +34,48 @@ export function getFavorites() {
   return getStoredArray(STORAGE_KEYS.favorites);
 }
 
+// --- Per-character conversation storage (P1 #6) ---
+
+function chatKey(characterId) {
+  return `${STORAGE_KEYS.chats}:${characterId}`;
+}
+
 export function getChats() {
-  return getStoredObject(STORAGE_KEYS.chats);
+  // Legacy compatibility: read from old unified key first
+  const legacy = safeParse(localStorage.getItem(STORAGE_KEYS.chats), null);
+  if (legacy && typeof legacy === 'object' && !Array.isArray(legacy)) {
+    // Migrate: split into per-character keys
+    for (const [id, messages] of Object.entries(legacy)) {
+      if (Array.isArray(messages)) {
+        localStorage.setItem(chatKey(id), JSON.stringify(messages));
+      }
+    }
+    localStorage.removeItem(STORAGE_KEYS.chats);
+  }
+  // Build object from per-character keys (for export / legacy callers)
+  const result = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(`${STORAGE_KEYS.chats}:`)) {
+      const id = key.slice(STORAGE_KEYS.chats.length + 1);
+      result[id] = safeParse(localStorage.getItem(key), []);
+    }
+  }
+  return result;
 }
 
 export function getCharacterConversation(characterId) {
-  const chats = getChats();
-  return Array.isArray(chats[characterId]) ? chats[characterId] : [];
+  // Try per-character key first
+  const perChar = safeParse(localStorage.getItem(chatKey(characterId)), null);
+  if (Array.isArray(perChar)) return perChar;
+  // Fallback: legacy unified key
+  const legacy = safeParse(localStorage.getItem(STORAGE_KEYS.chats), null);
+  if (legacy && Array.isArray(legacy[characterId])) return legacy[characterId];
+  return [];
 }
 
 export function setCharacterConversation(characterId, messages) {
-  const chats = getChats();
-  chats[characterId] = messages;
-  setStoredObject(STORAGE_KEYS.chats, chats);
+  localStorage.setItem(chatKey(characterId), JSON.stringify(messages));
 }
 
 export function getCharacterActivityTime(character) {
@@ -56,10 +86,25 @@ export function getCharacterActivityTime(character) {
   return Math.max(base || 0, recent || 0);
 }
 
+// --- Character list with caching (P1 #5) ---
+
+let _cachedCharacters = null;
+let _cacheVersion = 0;
+let _lastCacheVersion = -1;
+
+export function invalidateCharacterCache() {
+  _cacheVersion++;
+}
+
 export function getAllCharacters() {
+  if (_cachedCharacters && _lastCacheVersion === _cacheVersion) {
+    return _cachedCharacters;
+  }
   const custom = getCreatedCharacters();
   const merged = [...DEFAULT_CHARACTERS, ...custom];
-  return merged.sort((a, b) => getCharacterActivityTime(b) - getCharacterActivityTime(a));
+  _cachedCharacters = merged.sort((a, b) => getCharacterActivityTime(b) - getCharacterActivityTime(a));
+  _lastCacheVersion = _cacheVersion;
+  return _cachedCharacters;
 }
 
 export function findCharacterById(id) {
@@ -82,13 +127,15 @@ export function toggleFavorite(id) {
 export function removeCreatedCharacter(id) {
   const created = getCreatedCharacters().filter((character) => character.id !== id);
   setStoredArray(STORAGE_KEYS.createdCharacters, created);
+  invalidateCharacterCache();
 
-  const chats = getChats();
-  delete chats[id];
-  setStoredObject(STORAGE_KEYS.chats, chats);
+  localStorage.removeItem(chatKey(id));
 
   const favorites = getFavorites().filter((favoriteId) => favoriteId !== id);
   setStoredArray(STORAGE_KEYS.favorites, favorites);
+
+  // Clean up IndexedDB cover image
+  deleteCoverImage(id).catch(() => {});
 }
 
 export function setSelectedCharacter(id) {
@@ -121,6 +168,9 @@ export function ensureConversationInitialized(character) {
 }
 
 export function cryptoRandomId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
@@ -152,6 +202,7 @@ export function updateCharacterActivity(characterId) {
       : item);
     setStoredArray(STORAGE_KEYS.createdCharacters, created);
   }
+  invalidateCharacterCache();
 }
 
 export function seedInitialSelection() {
@@ -160,4 +211,16 @@ export function seedInitialSelection() {
     const first = getAllCharacters()[0];
     if (first) setSelectedCharacter(first.id);
   }
+}
+
+export async function resolveIdbCovers(characters) {
+  const pending = characters.filter((c) => typeof c.cover === 'string' && c.cover.startsWith('idb:'));
+  await Promise.all(pending.map(async (c) => {
+    const id = c.cover.slice(4);
+    try {
+      c._resolvedCover = await getCoverImage(id);
+    } catch {
+      c._resolvedCover = '';
+    }
+  }));
 }

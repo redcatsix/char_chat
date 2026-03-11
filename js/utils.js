@@ -84,5 +84,9 @@ export function readFileAsDataUrl(file) {
 
 export function getCharacterThumbnail(character) {
   const value = typeof character?.cover === 'string' ? character.cover.trim() : '';
+  if (/^idb:/.test(value)) {
+    // Resolved asynchronously via resolveIdbCovers(); return cached URL if available
+    return character._resolvedCover || '';
+  }
   return /^(https?:\/\/|data:image\/)/i.test(value) ? value : '';
 }

@@ -7,32 +7,32 @@ import {
   getAllTags, getConversationSummaries,
 } from '../ui.js';
 
-export function initHomePage(force = false, refreshPage) {
+const state = { genre: 'all' };
+let bound = false;
+
+function renderHomeGrid(refreshPage) {
   const featuredGrid = document.getElementById('featuredGrid');
   if (!featuredGrid) return;
 
-  const homeState = window.__homeState || { genre: 'all' };
-  window.__homeState = homeState;
+  const characters = getAllCharacters().sort((a, b) => (b.likes + b.chats) - (a.likes + a.chats));
+  const filtered = filterByGenre(characters, state.genre);
+  const featured = filtered.slice(0, MAX_FEATURED);
+  featuredGrid.innerHTML = featured.length
+    ? featured.map((character) => renderCharacterCard(character, { layout: 'feed' })).join('')
+    : emptyState('이 장르에 해당하는 캐릭터가 없어요', '다른 장르를 선택해 보세요.');
+  wireFavoriteButtons(featuredGrid, refreshPage);
+  wireChatLinks(featuredGrid);
+  wireProfileModals(featuredGrid);
+}
 
-  function renderHomeGrid() {
-    const characters = getAllCharacters().sort((a, b) => (b.likes + b.chats) - (a.likes + a.chats));
-    const filtered = filterByGenre(characters, homeState.genre);
-    const featured = filtered.slice(0, MAX_FEATURED);
-    featuredGrid.innerHTML = featured.length
-      ? featured.map((character) => renderCharacterCard(character, { layout: 'feed' })).join('')
-      : emptyState('이 장르에 해당하는 캐릭터가 없어요', '다른 장르를 선택해 보세요.');
-    wireFavoriteButtons(featuredGrid, refreshPage);
-    wireChatLinks(featuredGrid);
-    wireProfileModals(featuredGrid);
-  }
-
+function render(refreshPage) {
   function onGenreSelect(genre) {
-    homeState.genre = genre;
+    state.genre = genre;
     renderGenreTabs('genreTabs', genre, onGenreSelect);
-    renderHomeGrid();
+    renderHomeGrid(refreshPage);
   }
-  renderGenreTabs('genreTabs', homeState.genre, onGenreSelect);
-  renderHomeGrid();
+  renderGenreTabs('genreTabs', state.genre, onGenreSelect);
+  renderHomeGrid(refreshPage);
 
   const tagsRoot = document.getElementById('popularTags');
   const topTags = getAllTags().slice(0, MAX_TOP_TAGS);
@@ -60,13 +60,24 @@ export function initHomePage(force = false, refreshPage) {
     const el = document.getElementById(id);
     if (el) el.textContent = formatCount(value);
   });
+}
 
-  if (!force) {
-    document.getElementById('heroSearchForm')?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const query = document.getElementById('heroSearchInput')?.value?.trim() || '';
-      const nextUrl = query ? `explore.html?q=${encodeURIComponent(query)}` : 'explore.html';
-      window.location.href = nextUrl;
-    });
+function bindEvents() {
+  document.getElementById('heroSearchForm')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = document.getElementById('heroSearchInput')?.value?.trim() || '';
+    const nextUrl = query ? `explore.html?q=${encodeURIComponent(query)}` : 'explore.html';
+    window.location.href = nextUrl;
+  });
+}
+
+export function initHomePage(force = false, refreshPage) {
+  const featuredGrid = document.getElementById('featuredGrid');
+  if (!featuredGrid) return;
+
+  if (!bound) {
+    bindEvents();
+    bound = true;
   }
+  render(refreshPage);
 }
