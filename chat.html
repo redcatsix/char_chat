@@ -44,7 +44,29 @@
           <div class="chat-notice">
             <div class="chat-notice-head">
               <strong>DeepInfra <code>deepseek-ai/DeepSeek-V3.2</code></strong>
-              <span id="aiStatusBadge" class="ai-status waiting">연결 대기</span>
+              <div class="chat-notice-right">
+                <span id="aiStatusBadge" class="ai-status waiting">연결 대기</span>
+                <div class="chat-menu-wrap">
+                  <button id="chatMenuToggle" class="chat-menu-btn" type="button" aria-label="대화 설정">
+                    <span></span><span></span><span></span>
+                  </button>
+                  <div id="chatMenuDropdown" class="chat-menu-dropdown" hidden>
+                    <button class="chat-menu-item" data-action="restart" type="button">
+                      <strong>새로하기</strong>
+                      <small>현재 내용은 자동 저장 중이에요</small>
+                    </button>
+                    <button class="chat-menu-item" data-action="delete-range" type="button">
+                      <strong>대화 삭제</strong>
+                      <small>범위를 선택해 삭제할 수 있어요</small>
+                    </button>
+                    <hr class="chat-menu-divider" />
+                    <button class="chat-menu-item" data-action="profile" type="button">
+                      <strong>대화 프로필</strong>
+                      <small>대화할 프로필을 선택해요</small>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
             <p class="chat-notice-copy">서버 템플릿 기반으로 응답하며, 연결 실패 시에는 자동으로 목업 응답으로 전환됩니다.</p>
           </div>
@@ -58,7 +80,6 @@
               placeholder="메시지를 입력하세요. Shift + Enter로 줄바꿈"
             ></textarea>
             <div class="composer-actions">
-              <button id="resetChatBtn" class="button ghost" type="button">대화 초기화</button>
               <button class="button primary" type="submit">전송</button>
             </div>
           </form>

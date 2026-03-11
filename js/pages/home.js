@@ -14,7 +14,9 @@ function renderHomeGrid(refreshPage) {
   const featuredGrid = document.getElementById('featuredGrid');
   if (!featuredGrid) return;
 
-  const characters = getAllCharacters().sort((a, b) => (b.likes + b.chats) - (a.likes + a.chats));
+  const characters = getAllCharacters()
+    .filter((c) => c.visibility !== 'private')
+    .sort((a, b) => (b.likes + b.chats) - (a.likes + a.chats));
   const filtered = filterByGenre(characters, state.genre);
   const featured = filtered.slice(0, MAX_FEATURED);
   featuredGrid.innerHTML = featured.length
