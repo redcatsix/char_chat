@@ -372,7 +372,7 @@ export function initChatPage(force = false, refreshPage) {
 
     if (chatTopbarInfo) {
       chatTopbarInfo.innerHTML = `
-        <div class="message-avatar" style="width:28px;height:28px;border-radius:8px;font-size:0.85rem;">${escapeHtml(liveCharacter.avatar || '✨')}</div>
+        ${renderAvatarBadge(liveCharacter, { size: 30, className: 'avatar-badge' })}
         <strong>${escapeHtml(liveCharacter.name)}</strong>
       `;
     }

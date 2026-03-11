@@ -145,6 +145,18 @@ export function initCreatePage(force = false) {
       }
     });
 
+    // Preview toggle
+    const previewToggleBtn = document.getElementById('previewToggleBtn');
+    const previewSection = document.getElementById('createPreviewSection');
+    previewToggleBtn?.addEventListener('click', () => {
+      const isHidden = previewSection.style.display === 'none';
+      previewSection.style.display = isHidden ? '' : 'none';
+      if (isHidden) {
+        syncPreview(form, previewCard);
+        previewSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+
     form.addEventListener('input', () => syncPreview(form, previewCard));
     form.addEventListener('change', () => syncPreview(form, previewCard));
     form.addEventListener('reset', () => {

@@ -1,10 +1,8 @@
-import { MAX_FEATURED, MAX_RECENT_HOME, MAX_TOP_TAGS } from '../constants.js';
-import { getAllCharacters, getCreatedCharacters } from '../storage.js';
-import { escapeHtml, formatCount } from '../utils.js';
+import { MAX_FEATURED } from '../constants.js';
+import { getAllCharacters } from '../storage.js';
 import {
   renderCharacterCard, wireFavoriteButtons, wireChatLinks, wireProfileModals,
-  renderGenreTabs, filterByGenre, emptyState, createRecentCard,
-  getAllTags, getConversationSummaries,
+  renderGenreTabs, filterByGenre, emptyState,
 } from '../ui.js';
 
 const state = { genre: 'all' };
@@ -35,39 +33,29 @@ function render(refreshPage) {
   }
   renderGenreTabs('genreTabs', state.genre, onGenreSelect);
   renderHomeGrid(refreshPage);
-
-  const tagsRoot = document.getElementById('popularTags');
-  const topTags = getAllTags().slice(0, MAX_TOP_TAGS);
-  if (tagsRoot) {
-    tagsRoot.innerHTML = topTags
-      .map(({ tag, count }) => `<a class="tag-pill" href="explore.html?q=${encodeURIComponent(tag)}">${escapeHtml(tag)} <span class="meta-muted">${count}</span></a>`)
-      .join('');
-  }
-
-  const recentRoot = document.getElementById('recentChats');
-  const summaries = getConversationSummaries();
-  if (recentRoot) {
-    recentRoot.innerHTML = summaries.length
-      ? summaries.slice(0, MAX_RECENT_HOME).map((summary) => createRecentCard(summary)).join('')
-      : emptyState('아직 이어갈 대화가 없어요', '탐색 페이지에서 캐릭터를 고르고 첫 대화를 시작해보세요.');
-  }
-
-  const statsMap = {
-    homeCharacterCount: getAllCharacters().length,
-    homeCreatedCount: getCreatedCharacters().length,
-    homeConversationCount: summaries.length,
-  };
-
-  Object.entries(statsMap).forEach(([id, value]) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = formatCount(value);
-  });
 }
 
 function bindEvents() {
+  // Search overlay toggle
+  const searchToggle = document.getElementById('searchToggleBtn');
+  const searchOverlay = document.getElementById('searchOverlay');
+  const searchClose = document.getElementById('searchCloseBtn');
+  const searchInput = document.getElementById('heroSearchInput');
+
+  searchToggle?.addEventListener('click', () => {
+    if (searchOverlay) {
+      searchOverlay.hidden = false;
+      searchInput?.focus();
+    }
+  });
+
+  searchClose?.addEventListener('click', () => {
+    if (searchOverlay) searchOverlay.hidden = true;
+  });
+
   document.getElementById('heroSearchForm')?.addEventListener('submit', (event) => {
     event.preventDefault();
-    const query = document.getElementById('heroSearchInput')?.value?.trim() || '';
+    const query = searchInput?.value?.trim() || '';
     const nextUrl = query ? `explore.html?q=${encodeURIComponent(query)}` : 'explore.html';
     window.location.href = nextUrl;
   });

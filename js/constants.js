@@ -36,7 +36,7 @@ export const STYLE_LABELS = {
 };
 
 export const MAX_TAGS = 8;
-export const MAX_FEATURED = 6;
+export const MAX_FEATURED = 8;
 export const MAX_RECENT_HOME = 4;
 export const MAX_TOP_TAGS = 16;
 export const MESSAGE_HISTORY_LIMIT = 30;

@@ -18,7 +18,7 @@ export function emptyState(title, description) {
   `;
 }
 
-export function renderAvatarBadge(character, { size = 48, className = 'avatar-badge' } = {}) {
+export function renderAvatarBadge(character, { size = 44, className = 'avatar-badge' } = {}) {
   const thumb = getCharacterThumbnail(character);
   const style = `style="width:${size}px;height:${size}px;"`;
   if (thumb) {
@@ -35,33 +35,33 @@ export function renderCharacterCard(character, { showDelete = false, layout = 'd
 
   if (layout === 'feed') {
     return `
-      <article class="card character-card character-card-feed" data-character-card="${escapeHtml(character.id)}">
+      <article class="card character-card" data-character-card="${escapeHtml(character.id)}">
         <div class="character-thumb">
           ${cover
             ? `<img class="character-cover" src="${escapeHtml(cover)}" alt="${escapeHtml(character.name)}" loading="lazy" />`
             : `<div class="character-cover-fallback"><span>${escapeHtml(character.avatar || '✨')}</span></div>`}
-          <span class="chat-count-pill">💬 ${formatCount(character.chats || 0)}</span>
+          <span class="chat-count-pill"><span class="pill-dot"></span> ${formatCount(character.chats || 0)}</span>
           <button class="favorite-toggle ${favoriteActive ? 'is-active' : ''}" data-favorite-id="${escapeHtml(character.id)}" type="button" aria-label="즐겨찾기">♥</button>
-          <div class="character-overlay">
-            <strong>${escapeHtml(character.name)}</strong>
-            <p>${escapeHtml(character.headline)}</p>
-            <div class="tag-list">
-              ${safeTags.slice(0, 2).map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join('')}
-            </div>
-          </div>
           <a class="character-tile-link" href="chat.html?character=${encodeURIComponent(character.id)}" data-open-chat-id="${escapeHtml(character.id)}" aria-label="${escapeHtml(character.name)}와 대화"></a>
+        </div>
+        <div class="character-card-body">
+          <strong>${escapeHtml(character.name)}</strong>
+          <p>${escapeHtml(character.headline)}</p>
+          <div class="tag-list">
+            ${safeTags.slice(0, 3).map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join('')}
+          </div>
         </div>
       </article>
     `;
   }
 
   return `
-    <article class="card character-card" data-character-card="${escapeHtml(character.id)}">
+    <article class="card character-card character-card-detail" data-character-card="${escapeHtml(character.id)}">
       <div class="character-thumb">
         ${cover
           ? `<img class="character-cover" src="${escapeHtml(cover)}" alt="${escapeHtml(character.name)}" loading="lazy" />`
           : `<div class="character-cover-fallback"><span>${escapeHtml(character.avatar || '✨')}</span></div>`}
-        <span class="chat-count-pill">💬 ${formatCount(character.chats || 0)}</span>
+        <span class="chat-count-pill"><span class="pill-dot"></span> ${formatCount(character.chats || 0)}</span>
         <button class="favorite-toggle ${favoriteActive ? 'is-active' : ''}" data-favorite-id="${escapeHtml(character.id)}" type="button" aria-label="즐겨찾기">♥</button>
       </div>
       <div class="character-info">
@@ -114,7 +114,7 @@ export function wireDeleteButtons(scope, refreshPage) {
       const id = button.dataset.deleteCharacterId;
       const target = findCharacterById(id);
       if (!target || target.isBuiltin) return;
-      if (!window.confirm(`'${target.name}' 캐릭터를 삭제할까요? 저장된 대화도 함께 삭제됩니다.`)) return;
+      if (!window.confirm(`'${target.name}' 캐릭터를 삭제할까요?`)) return;
       removeCreatedCharacter(id);
       showToast('캐릭터를 삭제했어요');
       refreshPage();
@@ -154,7 +154,7 @@ export function showCharacterProfile(characterId) {
           : `<div class="character-cover-fallback" style="aspect-ratio:4/3;"><span style="font-size:3rem;">${escapeHtml(character.avatar || '✨')}</span></div>`}
       </div>
       <div class="profile-modal-body">
-        <h2>${escapeHtml(character.name)}</h2>
+        <h2 style="margin:0;">${escapeHtml(character.name)}</h2>
         <p style="color:var(--text-secondary);margin:0;">${escapeHtml(character.headline)}</p>
         <div class="tag-list">
           ${safeTags.map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join('')}
@@ -193,7 +193,6 @@ export function showCharacterProfile(characterId) {
     setSelectedCharacter(character.id);
   });
 
-  // Focus trap: focus the close button
   const closeBtn = modal.querySelector('.profile-modal-close');
   if (closeBtn) closeBtn.focus();
 }
@@ -227,10 +226,10 @@ export function createRecentCard(summary) {
   return `
     <article class="recent-chat-card">
       <div class="recent-chat-card-header">
-        <div class="character-title">
-          <div class="avatar-badge" style="width:44px;height:44px;border-radius:14px;font-size:1.2rem;">${escapeHtml(summary.character.avatar || '✨')}</div>
+        <div class="character-title" style="display:flex;align-items:center;gap:8px;">
+          ${renderAvatarBadge(summary.character, { size: 38 })}
           <div>
-            <h3>${escapeHtml(summary.character.name)}</h3>
+            <h3 style="margin:0;font-size:0.92rem;">${escapeHtml(summary.character.name)}</h3>
             <small>${escapeHtml(summary.character.headline)}</small>
           </div>
         </div>
@@ -238,7 +237,7 @@ export function createRecentCard(summary) {
       </div>
       <p>${escapeHtml(summary.preview)}</p>
       <div class="meta-row">
-        <span class="meta-pill">유저 입력 ${summary.userTurns}회</span>
+        <span class="meta-pill">입력 ${summary.userTurns}회</span>
         <span class="meta-pill">메시지 ${summary.messageCount}개</span>
       </div>
       <a class="button primary small" href="chat.html?character=${encodeURIComponent(summary.character.id)}">대화 이어가기</a>
@@ -333,10 +332,9 @@ export function renderChatCharacterList(characters, activeCharacterId) {
     const last = history[history.length - 1];
     return `
       <a class="chat-character-item ${character.id === activeCharacterId ? 'is-active' : ''}" href="chat.html?character=${encodeURIComponent(character.id)}" data-open-chat-id="${escapeHtml(character.id)}">
-        ${renderAvatarBadge(character, { size: 46 })}
+        ${renderAvatarBadge(character, { size: 40 })}
         <div class="chat-character-meta">
           <strong>${escapeHtml(character.name)}</strong>
-          <p>${escapeHtml(character.headline)}</p>
           <small>${escapeHtml(last?.text || character.greeting)}</small>
         </div>
       </a>
@@ -348,16 +346,12 @@ export function renderChatHeader(character) {
   const favoriteActive = isFavorite(character.id);
   return `
     <div class="chat-header-main">
-      ${renderAvatarBadge(character)}
+      ${renderAvatarBadge(character, { size: 40 })}
       <div>
-        <div class="character-title">
+        <div class="character-title" style="display:flex;align-items:center;gap:6px;">
           <h1>${escapeHtml(character.name)}</h1>
-          <span class="visibility-badge ${character.visibility === 'private' ? 'private' : ''}">${character.visibility === 'private' ? '비공개' : '공개'}</span>
         </div>
-        <p>${escapeHtml(character.headline)}</p>
-        <div class="tag-list" style="margin-top:12px;">
-          ${character.tags.map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join('')}
-        </div>
+        <p style="margin:0;color:var(--muted);font-size:0.84rem;">${escapeHtml(character.headline)}</p>
       </div>
     </div>
     <div class="chat-header-actions">
@@ -368,11 +362,11 @@ export function renderChatHeader(character) {
 
 export function renderProfileCard(character) {
   return `
-    <div class="character-title">
-      ${renderAvatarBadge(character)}
+    <div style="display:flex;align-items:center;gap:8px;">
+      ${renderAvatarBadge(character, { size: 38 })}
       <div>
         <strong>${escapeHtml(character.name)}</strong>
-        <p>${escapeHtml(character.headline)}</p>
+        <p style="margin:0;color:var(--muted);font-size:0.82rem;">${escapeHtml(character.headline)}</p>
       </div>
     </div>
     <div class="meta-row">
@@ -380,12 +374,8 @@ export function renderProfileCard(character) {
       <span class="meta-pill">💬 ${formatCount(character.chats || 0)}</span>
     </div>
     <div>
-      <strong>성격 / 설정</strong>
-      <p>${escapeHtml(character.personality)}</p>
-    </div>
-    <div>
-      <strong>시나리오</strong>
-      <p>${escapeHtml(character.scenario || '시나리오 설명이 아직 없어요.')}</p>
+      <strong style="font-size:0.84rem;color:var(--muted);">성격 / 설정</strong>
+      <p style="margin:4px 0 0;font-size:0.88rem;">${escapeHtml(character.personality)}</p>
     </div>
   `;
 }
