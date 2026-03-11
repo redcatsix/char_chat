@@ -80,10 +80,17 @@ textarea {
 
 .app-shell {
   width: 100%;
-  max-width: 100%;
+  max-width: 480px;
   margin: 0 auto;
   padding: 0 0 calc(var(--mobile-nav-height) + var(--safe-bottom) + 8px);
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  box-shadow: -1px 0 0 var(--border), 1px 0 0 var(--border);
 }
+
+/* 채팅 페이지: 하단 네비 위에 컴포저가 올라감 */
 
 /* ── Topbar (모바일 심플) ── */
 
@@ -1330,7 +1337,7 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 /* ── Chat Composer ── */
 
 .chat-composer {
-  padding: 8px 10px calc(4px + var(--safe-bottom));
+  padding: 8px 10px;
   border-top: 1px solid var(--border);
   display: flex;
   align-items: flex-end;
@@ -1844,8 +1851,10 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 
 .mobile-nav {
   position: fixed;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   bottom: 0;
   z-index: 110;
   display: flex;
