@@ -2,32 +2,20 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NebulaTalk - 마이페이지</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body data-page="mypage">
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="index.html" aria-label="NebulaTalk 홈">
-        <span class="brand-mark">N</span>
-        <span class="brand-text">
-          <strong>NebulaTalk</strong>
-          <small>character story chat</small>
-        </span>
-      </a>
-
-      <nav class="desktop-nav" aria-label="주 메뉴">
-        <a href="index.html">홈</a>
-        <a href="chat.html">대화</a>
-        <a href="create.html">제작</a>
-        <a class="is-active" href="mypage.html">마이페이지</a>
-      </nav>
-
-      <div class="topbar-actions">
-        <button id="importDataBtn" class="button ghost" type="button">가져오기</button>
-        <button id="exportDataBtn" class="button ghost" type="button">내보내기</button>
-        <a class="button primary" href="create.html">새 캐릭터</a>
+      <div class="topbar-tabs">
+        <span style="font-weight:800;font-size:1.1rem;color:var(--text);">마이페이지</span>
+      </div>
+      <div class="topbar-icons">
+        <a class="topbar-icon-btn" href="create.html" aria-label="새 캐릭터">
+          <svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+        </a>
       </div>
     </header>
 
@@ -42,7 +30,7 @@
         </div>
       </section>
 
-      <section class="card summary-strip">
+      <section class="summary-strip">
         <div class="mini-stat">
           <span>즐겨찾기</span>
           <strong id="mypageFavoriteCount">0</strong>
@@ -52,13 +40,18 @@
           <strong id="mypageCreatedCount">0</strong>
         </div>
         <div class="mini-stat">
-          <span>진행 중인 대화</span>
+          <span>대화</span>
           <strong id="mypageConversationCount">0</strong>
         </div>
       </section>
 
+      <div class="mypage-actions-row">
+        <button id="importDataBtn" class="button ghost small" type="button">가져오기</button>
+        <button id="exportDataBtn" class="button ghost small" type="button">내보내기</button>
+      </div>
+
       <section class="section-block">
-        <div class="section-head compact">
+        <div class="section-head">
           <div>
             <span class="section-kicker">FAVORITES</span>
             <h2>즐겨찾기한 캐릭터</h2>
@@ -68,7 +61,7 @@
       </section>
 
       <section class="section-block">
-        <div class="section-head compact">
+        <div class="section-head">
           <div>
             <span class="section-kicker">MY CREATION</span>
             <h2>내가 만든 캐릭터</h2>
@@ -78,30 +71,13 @@
       </section>
 
       <section class="section-block">
-        <div class="section-head compact">
+        <div class="section-head">
           <div>
             <span class="section-kicker">RECENT CHAT</span>
             <h2>최근 대화</h2>
           </div>
         </div>
         <div id="mypageRecentChats" class="list-stack"></div>
-      </section>
-
-      <section class="section-block">
-        <div class="card panel-card">
-          <div class="section-head compact">
-            <div>
-              <span class="section-kicker">ACCOUNT</span>
-              <h2>운영 체크리스트</h2>
-            </div>
-          </div>
-          <ul class="check-list">
-            <li>DeepInfra 연동 상태를 주기적으로 점검</li>
-            <li>중요 캐릭터와 대화 로그를 정기적으로 백업</li>
-            <li>캐릭터 템플릿(성격/시나리오/첫 인사) 일관성 유지</li>
-            <li>공개/비공개 캐릭터 권한과 즐겨찾기 목록 정리</li>
-          </ul>
-        </div>
       </section>
     </main>
 

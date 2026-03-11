@@ -2,20 +2,26 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NebulaTalk - 대화</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body data-page="chat">
   <div class="app-shell">
     <header class="topbar chat-topbar">
-      <a class="chat-back-btn" href="index.html" aria-label="뒤로가기">←</a>
+      <a class="chat-back-btn" href="index.html" aria-label="뒤로가기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
       <div id="chatTopbarInfo" class="chat-topbar-info">
         <strong>대화를 선택하세요</strong>
       </div>
       <div class="chat-topbar-actions">
-        <button id="chatSidebarToggle" class="button ghost small" type="button">목록</button>
-        <button id="chatSettingsToggle" class="button ghost small" type="button">설정</button>
+        <button id="chatSidebarToggle" class="topbar-icon-btn" type="button" aria-label="캐릭터 목록">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </button>
+        <button id="chatSettingsToggle" class="topbar-icon-btn" type="button" aria-label="설정">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
       </div>
     </header>
 
@@ -38,12 +44,12 @@
           <div id="chatCharacterList" class="chat-character-list"></div>
         </aside>
 
-        <section class="card chat-main">
-          <header id="chatHeader" class="chat-header"></header>
+        <section class="card chat-main" style="border:none;border-radius:0;background:transparent;box-shadow:none;">
+          <header id="chatHeader" class="chat-header" style="display:none;"></header>
 
           <div class="chat-notice">
             <div class="chat-notice-head">
-              <strong>DeepInfra <code>deepseek-ai/DeepSeek-V3.2</code></strong>
+              <strong>DeepInfra <code>DeepSeek-V3.2</code></strong>
               <div class="chat-notice-right">
                 <span id="aiStatusBadge" class="ai-status waiting">연결 대기</span>
                 <div class="chat-menu-wrap">
@@ -77,10 +83,12 @@
             <textarea
               id="chatInput"
               rows="1"
-              placeholder="메시지를 입력하세요. Shift + Enter로 줄바꿈"
+              placeholder="메시지를 입력하세요..."
             ></textarea>
             <div class="composer-actions">
-              <button class="button primary" type="submit">전송</button>
+              <button class="composer-send-btn" type="submit" aria-label="전송">
+                <svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg>
+              </button>
             </div>
           </form>
         </section>

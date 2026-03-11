@@ -2,104 +2,55 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NebulaTalk - 홈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>NebulaTalk</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body data-page="home">
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="index.html" aria-label="NebulaTalk 홈">
-        <span class="brand-mark">N</span>
-        <span class="brand-text">
-          <strong>NebulaTalk</strong>
-          <small>character story chat</small>
-        </span>
-      </a>
-
-      <nav class="desktop-nav" aria-label="주 메뉴">
+      <div class="topbar-tabs">
         <a class="is-active" href="index.html">홈</a>
-        <a href="chat.html">대화</a>
-        <a href="create.html">제작</a>
-        <a href="mypage.html">마이페이지</a>
-      </nav>
-
-      <div class="topbar-actions">
-        <a class="button ghost" href="explore.html">랭킹</a>
-        <a class="button primary" href="create.html">캐릭터 제작</a>
+        <a href="explore.html">랭킹</a>
+      </div>
+      <div class="topbar-icons">
+        <button id="searchToggleBtn" class="topbar-icon-btn" type="button" aria-label="검색">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <a class="topbar-icon-btn" href="mypage.html" aria-label="알림">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </a>
       </div>
     </header>
 
-    <main class="page home-page app-home-page">
-      <section class="card home-switch home-switch-app">
-        <div class="home-switch-tabs">
-          <a class="is-active" href="index.html">홈</a>
-          <a href="explore.html">랭킹</a>
-        </div>
-        <div class="home-switch-actions">
-          <a class="home-icon-btn" href="explore.html" aria-label="검색">⌕</a>
-          <a class="home-icon-btn" href="mypage.html" aria-label="알림">◎</a>
-        </div>
-      </section>
-
-      <section class="card home-banner-card">
+    <main class="page home-page">
+      <section class="home-banner">
         <div class="home-banner-copy">
           <strong>오늘의 추천 캐릭터를 만나보세요</strong>
           <p>원하는 세계관을 고르고 바로 채팅을 시작할 수 있습니다.</p>
         </div>
+        <div class="home-banner-deco"></div>
+        <div class="home-banner-indicator">
+          <span class="is-active"></span>
+          <span></span>
+          <span></span>
+        </div>
       </section>
-
-      <form id="heroSearchForm" class="home-search-form" autocomplete="off">
-        <label class="sr-only" for="heroSearchInput">캐릭터 검색</label>
-        <input
-          id="heroSearchInput"
-          type="search"
-          name="q"
-          placeholder="캐릭터 이름, 태그, 세계관으로 검색"
-        />
-      </form>
 
       <section class="section-block">
         <div id="genreTabs" class="genre-tabs"></div>
       </section>
 
       <section class="section-block">
-        <div class="section-head compact">
+        <div class="section-head">
           <div>
             <span class="section-kicker">TRENDING</span>
             <h2>지금 뜨는 캐릭터</h2>
           </div>
           <a class="text-link" href="explore.html">더 보기</a>
         </div>
-        <div id="featuredGrid" class="character-grid app-feed-grid"></div>
+        <div id="featuredGrid" class="character-grid"></div>
       </section>
-
-      <section class="section-block two-column-grid app-meta-section">
-        <div class="card panel-card">
-          <div class="section-head compact">
-            <div>
-              <span class="section-kicker">TAGS</span>
-              <h2>인기 태그</h2>
-            </div>
-          </div>
-          <div id="popularTags" class="tag-cloud"></div>
-        </div>
-        <div class="card panel-card">
-          <div class="section-head compact">
-            <div>
-              <span class="section-kicker">RECENT</span>
-              <h2>최근 대화</h2>
-            </div>
-          </div>
-          <div id="recentChats" class="list-stack"></div>
-        </div>
-      </section>
-
-      <div class="sr-only" aria-hidden="true">
-        <span id="homeCharacterCount">0</span>
-        <span id="homeCreatedCount">0</span>
-        <span id="homeConversationCount">0</span>
-      </div>
     </main>
 
     <nav class="mobile-nav" aria-label="모바일 메뉴">
@@ -120,6 +71,17 @@
         <span class="mobile-nav-label">마이페이지</span>
       </a>
     </nav>
+  </div>
+
+  <!-- Search Overlay -->
+  <div id="searchOverlay" class="search-overlay" hidden>
+    <div class="search-overlay-header">
+      <button id="searchCloseBtn" class="search-overlay-close" type="button" aria-label="닫기">✕</button>
+      <form id="heroSearchForm" autocomplete="off" style="flex:1;">
+        <input id="heroSearchInput" type="search" name="q" placeholder="캐릭터 이름, 태그, 세계관으로 검색" autofocus />
+      </form>
+    </div>
+    <div id="searchResults"></div>
   </div>
 
   <div id="toast" class="toast" aria-live="polite"></div>

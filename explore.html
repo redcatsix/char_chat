@@ -2,37 +2,26 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NebulaTalk - 탐색</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body data-page="explore">
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="index.html" aria-label="NebulaTalk 홈">
-        <span class="brand-mark">N</span>
-        <span class="brand-text">
-          <strong>NebulaTalk</strong>
-          <small>character story chat</small>
-        </span>
-      </a>
-
-      <nav class="desktop-nav" aria-label="주 메뉴">
+      <div class="topbar-tabs">
         <a href="index.html">홈</a>
-        <a href="chat.html">대화</a>
-        <a href="create.html">제작</a>
-        <a href="mypage.html">마이페이지</a>
-      </nav>
-
-      <div class="topbar-actions">
-        <a class="button ghost" href="chat.html">대화창 열기</a>
-        <a class="button primary" href="create.html">캐릭터 만들기</a>
+        <a class="is-active" href="explore.html">랭킹</a>
+      </div>
+      <div class="topbar-icons">
+        <button id="searchToggleBtn" class="topbar-icon-btn" type="button" aria-label="검색">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
       </div>
     </header>
 
     <main class="page explore-page">
       <section class="explore-header">
-        <h1>탐색</h1>
         <div class="explore-search-bar">
           <input id="exploreSearchInput" type="search" placeholder="캐릭터 검색" />
           <select id="exploreSortSelect">
@@ -49,7 +38,7 @@
       </section>
 
       <section class="section-block">
-        <div class="section-head compact">
+        <div class="section-head">
           <div>
             <span class="section-kicker">FILTER</span>
             <h2>태그 필터</h2>
@@ -60,7 +49,7 @@
       </section>
 
       <section class="section-block">
-        <div class="section-head compact">
+        <div class="section-head">
           <div>
             <span class="section-kicker">RESULT</span>
             <h2 id="exploreResultTitle">탐색 결과</h2>

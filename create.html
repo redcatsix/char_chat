@@ -2,38 +2,30 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NebulaTalk - 캐릭터 제작</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body data-page="create">
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="index.html" aria-label="NebulaTalk 홈">
-        <span class="brand-mark">N</span>
-        <span class="brand-text">
-          <strong>NebulaTalk</strong>
-          <small>character story chat</small>
-        </span>
-      </a>
-
-      <nav class="desktop-nav" aria-label="주 메뉴">
-        <a href="index.html">홈</a>
-        <a href="chat.html">대화</a>
-        <a class="is-active" href="create.html">제작</a>
-        <a href="mypage.html">마이페이지</a>
-      </nav>
-
-      <div class="topbar-actions">
-        <a class="button ghost" href="explore.html">샘플 보기</a>
-        <a class="button primary" href="chat.html">대화창 열기</a>
+      <div class="topbar-tabs">
+        <a href="index.html" style="font-size:1rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </a>
+        <span style="font-weight:800;font-size:1.1rem;color:var(--text);">캐릭터 제작</span>
+      </div>
+      <div class="topbar-icons">
+        <a class="topbar-icon-btn" href="explore.html" aria-label="샘플 보기">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </a>
       </div>
     </header>
 
     <main class="page create-page">
-      <section class="card create-layout">
+      <section class="create-layout">
         <div class="create-form-wrap">
-          <div class="section-head compact">
+          <div class="section-head">
             <div>
               <span class="section-kicker">CREATE</span>
               <h1>새 캐릭터 만들기</h1>
@@ -41,8 +33,7 @@
           </div>
 
           <p class="helper-text">
-            아래 템플릿 필드가 그대로 AI 프롬프트 템플릿에 매핑됩니다.
-            저장 후 채팅에서 바로 연결 상태를 확인할 수 있습니다.
+            아래 템플릿 필드가 AI 프롬프트 템플릿에 매핑됩니다.
           </p>
 
           <form id="createCharacterForm" class="create-form">
@@ -59,8 +50,8 @@
 
             <div class="form-grid two-col">
               <label>
-                <span>커버 이미지 URL (선택)</span>
-                <input type="text" name="cover" placeholder="https://... 또는 업로드로 자동 입력" />
+                <span>커버 이미지 URL</span>
+                <input type="text" name="cover" placeholder="https://..." />
               </label>
               <label>
                 <span>썸네일 업로드</span>
@@ -91,7 +82,7 @@
             <div class="form-grid two-col">
               <label>
                 <span>태그</span>
-                <input type="text" name="tags" placeholder="#로맨스, #판타지, #느와르" />
+                <input type="text" name="tags" placeholder="#로맨스, #판타지" />
               </label>
               <label>
                 <span>공개 범위</span>
@@ -102,7 +93,7 @@
               </label>
             </div>
 
-            <div class="section-head compact form-subhead">
+            <div class="section-head form-subhead">
               <div>
                 <span class="section-kicker">STYLE</span>
                 <h2>기본 응답 스타일</h2>
@@ -147,34 +138,27 @@
             </div>
 
             <div class="form-grid actions-grid">
-              <button class="button ghost" type="reset">입력 초기화</button>
+              <button class="button ghost" type="reset">초기화</button>
               <button class="button primary" type="submit">저장하고 대화 시작</button>
             </div>
           </form>
         </div>
 
-        <aside class="create-preview-wrap">
-          <div class="section-head compact">
+        <aside class="create-preview-wrap" id="createPreviewSection" style="display:none;">
+          <div class="section-head">
             <div>
               <span class="section-kicker">PREVIEW</span>
               <h2>미리보기</h2>
             </div>
           </div>
           <div id="createPreviewCard" class="card preview-card"></div>
-          <div class="card preview-card template-map">
-            <strong>AI 템플릿 매핑</strong>
-            <ul class="check-list">
-              <li>이름 + 소개 + 성격 + 시나리오를 system prompt에 반영</li>
-              <li>첫 인사는 초기 메시지로 저장되어 첫 맥락에 사용</li>
-              <li>시점/길이/속도/톤은 기본 응답 스타일로 전달</li>
-              <li>태그/공개 여부는 캐릭터 메타 정보로 보존</li>
-            </ul>
-          </div>
         </aside>
       </section>
     </main>
 
-        <nav class="mobile-nav" aria-label="모바일 메뉴">
+    <button id="previewToggleBtn" class="create-preview-toggle" type="button" aria-label="미리보기">👁</button>
+
+    <nav class="mobile-nav" aria-label="모바일 메뉴">
       <a href="index.html">
         <span class="mobile-nav-icon">⌂</span>
         <span class="mobile-nav-label">홈</span>
@@ -198,12 +182,3 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
