@@ -8,155 +8,152 @@
 </head>
 <body data-page="create">
   <div class="app-shell">
-    <header class="topbar">
-      <div class="topbar-tabs">
-        <a href="index.html" style="font-size:1rem;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        </a>
-        <span style="font-weight:800;font-size:1.1rem;color:var(--text);">캐릭터 제작</span>
-      </div>
-      <div class="topbar-icons">
-        <a class="topbar-icon-btn" href="explore.html" aria-label="샘플 보기">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </a>
-      </div>
-    </header>
 
-    <main class="page create-page">
-      <section class="create-layout">
-        <div class="create-form-wrap">
-          <div class="section-head">
-            <div>
-              <span class="section-kicker">CREATE</span>
-              <h1>새 캐릭터 만들기</h1>
-            </div>
-          </div>
-
-          <p class="helper-text">
-            아래 템플릿 필드가 AI 프롬프트 템플릿에 매핑됩니다.
-          </p>
-
-          <form id="createCharacterForm" class="create-form">
-            <div class="form-grid two-col">
-              <label>
-                <span>캐릭터 이름</span>
-                <input type="text" name="name" placeholder="예: 서하준" required />
-              </label>
-              <label>
-                <span>대표 이모지</span>
-                <input type="text" name="avatar" placeholder="예: 🌙" maxlength="2" />
-              </label>
-            </div>
-
-            <div class="form-grid two-col">
-              <label>
-                <span>커버 이미지 URL</span>
-                <input type="text" name="cover" placeholder="https://..." />
-              </label>
-              <label>
-                <span>썸네일 업로드</span>
-                <input type="file" name="coverFile" accept="image/*" />
-              </label>
-            </div>
-
-            <label>
-              <span>한 줄 소개</span>
-              <input type="text" name="headline" placeholder="예: 냉정하지만 은근히 다정한 전략가" required />
-            </label>
-
-            <label>
-              <span>캐릭터 성격 / 설정</span>
-              <textarea name="personality" rows="4" placeholder="말투, 성격, 세계관, 관계성 등을 적어주세요." required></textarea>
-            </label>
-
-            <label>
-              <span>첫 인사</span>
-              <textarea name="greeting" rows="3" placeholder="유저가 처음 들어왔을 때 캐릭터가 건넬 첫 대사" required></textarea>
-            </label>
-
-            <label>
-              <span>시나리오</span>
-              <textarea name="scenario" rows="3" placeholder="예: 계약 관계로 시작한 두 사람이 비밀 임무를 함께 수행한다."></textarea>
-            </label>
-
-            <div class="form-grid two-col">
-              <label>
-                <span>태그</span>
-                <input type="text" name="tags" placeholder="#로맨스, #판타지" />
-              </label>
-              <label>
-                <span>공개 범위</span>
-                <select name="visibility">
-                  <option value="public">공개</option>
-                  <option value="private">비공개</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="section-head form-subhead">
-              <div>
-                <span class="section-kicker">STYLE</span>
-                <h2>기본 응답 스타일</h2>
-              </div>
-            </div>
-
-            <div class="form-grid four-col">
-              <label>
-                <span>시점</span>
-                <select name="pov">
-                  <option value="first">1인칭</option>
-                  <option value="second">2인칭</option>
-                  <option value="third" selected>3인칭</option>
-                </select>
-              </label>
-              <label>
-                <span>응답 길이</span>
-                <select name="length">
-                  <option value="short">짧게</option>
-                  <option value="medium" selected>보통</option>
-                  <option value="long">길게</option>
-                </select>
-              </label>
-              <label>
-                <span>전개 속도</span>
-                <select name="pacing">
-                  <option value="fast">빠르게</option>
-                  <option value="natural" selected>자연스럽게</option>
-                  <option value="slow">천천히</option>
-                </select>
-              </label>
-              <label>
-                <span>톤</span>
-                <select name="tone">
-                  <option value="romance" selected>로맨틱</option>
-                  <option value="slice">일상형</option>
-                  <option value="mystery">미스터리</option>
-                  <option value="fantasy">판타지</option>
-                  <option value="soft">다정한 위로</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="form-grid actions-grid">
-              <button class="button ghost" type="reset">초기화</button>
-              <button class="button primary" type="submit">저장하고 대화 시작</button>
-            </div>
-          </form>
+    <!-- ═══ 캐릭터 목록 뷰 ═══ -->
+    <div id="createListView" class="create-view">
+      <header class="topbar chat-list-topbar">
+        <div class="topbar-tabs">
+          <span style="font-weight:800;font-size:1.15rem;color:var(--text);">제작</span>
         </div>
+        <div class="topbar-icons">
+          <button id="createNewBtn" class="topbar-icon-btn" type="button" aria-label="새 캐릭터">
+            <svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+      </header>
 
-        <aside class="create-preview-wrap" id="createPreviewSection" style="display:none;">
-          <div class="section-head">
-            <div>
-              <span class="section-kicker">PREVIEW</span>
-              <h2>미리보기</h2>
-            </div>
+      <main class="page create-list-page">
+        <div id="createCharacterGrid" class="create-character-grid"></div>
+      </main>
+    </div>
+
+    <!-- ═══ 캐릭터 편집 뷰 ═══ -->
+    <div id="createFormView" class="create-view" hidden>
+      <header class="topbar chat-topbar">
+        <button id="createFormBackBtn" class="chat-back-btn" type="button" aria-label="뒤로가기">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div class="chat-topbar-info">
+          <strong id="createFormTitle">새 캐릭터 만들기</strong>
+        </div>
+      </header>
+
+      <main class="page create-page">
+        <section class="create-layout">
+          <div class="create-form-wrap">
+            <form id="createCharacterForm" class="create-form">
+              <div class="form-grid two-col">
+                <label>
+                  <span>캐릭터 이름</span>
+                  <input type="text" name="name" placeholder="예: 서하준" required />
+                </label>
+                <label>
+                  <span>대표 이모지</span>
+                  <input type="text" name="avatar" placeholder="예: 🌙" maxlength="2" />
+                </label>
+              </div>
+
+              <div class="form-grid two-col">
+                <label>
+                  <span>커버 이미지 URL</span>
+                  <input type="text" name="cover" placeholder="https://..." />
+                </label>
+                <label>
+                  <span>썸네일 업로드</span>
+                  <input type="file" name="coverFile" accept="image/*" />
+                </label>
+              </div>
+
+              <label>
+                <span>한 줄 소개</span>
+                <input type="text" name="headline" placeholder="예: 냉정하지만 은근히 다정한 전략가" required />
+              </label>
+
+              <label>
+                <span>캐릭터 성격 / 설정</span>
+                <textarea name="personality" rows="4" placeholder="말투, 성격, 세계관, 관계성 등을 적어주세요." required></textarea>
+              </label>
+
+              <label>
+                <span>첫 인사</span>
+                <textarea name="greeting" rows="3" placeholder="유저가 처음 들어왔을 때 캐릭터가 건넬 첫 대사" required></textarea>
+              </label>
+
+              <label>
+                <span>시나리오</span>
+                <textarea name="scenario" rows="3" placeholder="예: 계약 관계로 시작한 두 사람이 비밀 임무를 함께 수행한다."></textarea>
+              </label>
+
+              <div class="form-grid two-col">
+                <label>
+                  <span>태그</span>
+                  <input type="text" name="tags" placeholder="#로맨스, #판타지" />
+                </label>
+                <label>
+                  <span>공개 범위</span>
+                  <select name="visibility">
+                    <option value="public">공개</option>
+                    <option value="private">비공개</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="section-head form-subhead">
+                <div>
+                  <span class="section-kicker">STYLE</span>
+                  <h2>기본 응답 스타일</h2>
+                </div>
+              </div>
+
+              <div class="form-grid four-col">
+                <label>
+                  <span>시점</span>
+                  <select name="pov">
+                    <option value="first">1인칭</option>
+                    <option value="second">2인칭</option>
+                    <option value="third" selected>3인칭</option>
+                  </select>
+                </label>
+                <label>
+                  <span>응답 길이</span>
+                  <select name="length">
+                    <option value="short">짧게</option>
+                    <option value="medium" selected>보통</option>
+                    <option value="long">길게</option>
+                  </select>
+                </label>
+                <label>
+                  <span>전개 속도</span>
+                  <select name="pacing">
+                    <option value="fast">빠르게</option>
+                    <option value="natural" selected>자연스럽게</option>
+                    <option value="slow">천천히</option>
+                  </select>
+                </label>
+                <label>
+                  <span>톤</span>
+                  <select name="tone">
+                    <option value="romance" selected>로맨틱</option>
+                    <option value="slice">일상형</option>
+                    <option value="mystery">미스터리</option>
+                    <option value="fantasy">판타지</option>
+                    <option value="soft">다정한 위로</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- hidden field for edit mode -->
+              <input type="hidden" name="editId" value="" />
+
+              <div class="form-grid actions-grid">
+                <button class="button ghost" type="reset">초기화</button>
+                <button class="button primary" type="submit" id="createSubmitBtn">저장하고 대화 시작</button>
+              </div>
+            </form>
           </div>
-          <div id="createPreviewCard" class="card preview-card"></div>
-        </aside>
-      </section>
-    </main>
-
-    <button id="previewToggleBtn" class="create-preview-toggle" type="button" aria-label="미리보기">👁</button>
+        </section>
+      </main>
+    </div>
 
     <nav class="mobile-nav" aria-label="모바일 메뉴">
       <a href="index.html">
