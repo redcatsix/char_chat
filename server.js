@@ -346,5 +346,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`NebulaTalk server running at http://${HOST}:${PORT}`);
+  console.log(`DokiSekai server running at http://${HOST}:${PORT}`);
 });
