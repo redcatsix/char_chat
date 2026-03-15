@@ -1567,13 +1567,24 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 }
 
 .mypage-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
   padding: 18px;
   margin: 0 12px;
   border-radius: var(--radius-xl);
   background: linear-gradient(135deg, var(--panel-soft) 0%, rgba(124,110,240,0.06) 100%);
+}
+
+.mypage-guest,
+.mypage-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.mypage-guest .mypage-info,
+.mypage-user .mypage-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .mypage-avatar {
@@ -1585,6 +1596,22 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   font-size: 1.8rem;
   background: var(--accent);
   flex-shrink: 0;
+}
+
+.mypage-user-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--accent);
+}
+
+.google-login-wrap {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
 }
 
 .mypage-info h1 {

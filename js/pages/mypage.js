@@ -8,10 +8,37 @@ import {
   renderCharacterCard, wireFavoriteButtons, wireChatLinks, wireDeleteButtons,
   wireProfileModals, emptyState, createRecentCard, getConversationSummaries,
 } from '../ui.js';
+import { getUser, logout, initGoogleAuth, renderGoogleButton, onAuthChange } from '../auth.js';
 
 let bound = false;
 
+function renderProfile() {
+  const guestEl = document.getElementById('mypageGuest');
+  const userEl = document.getElementById('mypageUser');
+  if (!guestEl || !userEl) return;
+
+  const user = getUser();
+  if (user) {
+    guestEl.hidden = true;
+    userEl.hidden = false;
+    const avatar = document.getElementById('mypageUserAvatar');
+    const name = document.getElementById('mypageUserName');
+    const email = document.getElementById('mypageUserEmail');
+    if (avatar) { avatar.src = user.picture; avatar.alt = user.name; }
+    if (name) name.textContent = user.name;
+    if (email) email.textContent = user.email;
+  } else {
+    guestEl.hidden = false;
+    userEl.hidden = true;
+    const btnWrap = document.getElementById('googleLoginBtn');
+    if (btnWrap && !btnWrap.hasChildNodes()) {
+      renderGoogleButton(btnWrap);
+    }
+  }
+}
+
 function render(refreshPage) {
+  renderProfile();
   const favoriteGrid = document.getElementById('favoriteGrid');
   const createdGrid = document.getElementById('createdGrid');
   const recentRoot = document.getElementById('mypageRecentChats');
@@ -117,6 +144,10 @@ function importUserData() {
 function bindEvents() {
   document.getElementById('exportDataBtn')?.addEventListener('click', exportUserData);
   document.getElementById('importDataBtn')?.addEventListener('click', importUserData);
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    logout();
+    showToast('로그아웃 되었습니다');
+  });
 }
 
 export function initMyPage(force = false, refreshPage) {
@@ -125,6 +156,18 @@ export function initMyPage(force = false, refreshPage) {
 
   if (!bound) {
     bindEvents();
+    // Load Google Client ID from server config
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => {
+        if (cfg.googleClientId) {
+          window.GOOGLE_CLIENT_ID = cfg.googleClientId;
+          initGoogleAuth();
+        }
+      })
+      .catch(() => {});
+    // Re-render on auth state changes
+    onAuthChange(() => render(refreshPage));
     bound = true;
   }
   render(refreshPage);
