@@ -321,17 +321,6 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const { pathname } = parsedUrl;
 
-  if (pathname === '/api/config') {
-    if (req.method === 'GET') {
-      sendJson(res, 200, {
-        googleClientId: process.env.GOOGLE_CLIENT_ID || '',
-      });
-      return;
-    }
-    sendText(res, 405, 'Method Not Allowed');
-    return;
-  }
-
   if (pathname === '/api/chat') {
     if (req.method === 'POST') {
       await handleChatRequest(req, res);
