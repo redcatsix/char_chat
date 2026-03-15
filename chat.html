@@ -8,99 +8,95 @@
 </head>
 <body data-page="chat">
   <div class="app-shell">
-    <header class="topbar chat-topbar">
-      <a class="chat-back-btn" href="index.html" aria-label="뒤로가기">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      </a>
-      <div id="chatTopbarInfo" class="chat-topbar-info">
-        <strong>대화를 선택하세요</strong>
-      </div>
-      <div class="chat-topbar-actions">
-        <button id="chatSidebarToggle" class="topbar-icon-btn" type="button" aria-label="캐릭터 목록">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </button>
-        <button id="chatSettingsToggle" class="topbar-icon-btn" type="button" aria-label="설정">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
-      </div>
-    </header>
 
-    <main class="page chat-page">
-      <div class="chat-layout">
-        <aside class="card chat-sidebar" id="chatSidebar">
-          <div class="sidebar-head">
-            <div>
-              <span class="section-kicker">CHARACTERS</span>
-              <h2>대화 목록</h2>
-            </div>
-            <a class="button ghost small" href="explore.html">탐색</a>
-          </div>
+    <!-- ═══ 채팅 목록 뷰 ═══ -->
+    <div id="chatListView" class="chat-view">
+      <header class="topbar chat-list-topbar">
+        <div class="topbar-tabs">
+          <span class="is-active" style="font-weight:800;font-size:1.15rem;color:var(--text);">대화</span>
+        </div>
+        <div class="topbar-icons">
+          <button id="chatListSearchToggle" class="topbar-icon-btn" type="button" aria-label="검색">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </button>
+        </div>
+      </header>
 
+      <main class="page chat-list-page">
+        <div id="chatListSearchWrap" class="chat-list-search-wrap" hidden>
           <label class="search-inline">
-            <span class="sr-only">캐릭터 목록 검색</span>
-            <input id="chatCharacterSearch" type="search" placeholder="캐릭터 검색" />
+            <span class="sr-only">대화 검색</span>
+            <input id="chatListSearchInput" type="search" placeholder="캐릭터 이름으로 검색" />
           </label>
+        </div>
+        <div id="chatListItems" class="chat-list-items"></div>
+      </main>
+    </div>
 
-          <div id="chatCharacterList" class="chat-character-list"></div>
-        </aside>
+    <!-- ═══ 채팅방 뷰 ═══ -->
+    <div id="chatRoomView" class="chat-view" hidden>
+      <header class="topbar chat-topbar">
+        <button id="chatBackBtn" class="chat-back-btn" type="button" aria-label="뒤로가기">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div id="chatTopbarInfo" class="chat-topbar-info">
+          <strong>대화를 선택하세요</strong>
+        </div>
+        <div class="chat-topbar-actions">
+          <button id="chatSettingsToggle" class="topbar-icon-btn" type="button" aria-label="설정">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+      </header>
 
-        <section class="card chat-main" style="border:none;border-radius:0;background:transparent;box-shadow:none;">
-          <header id="chatHeader" class="chat-header" style="display:none;"></header>
+      <main class="page chat-page">
+        <div class="chat-layout">
+          <section class="card chat-main" style="border:none;border-radius:0;background:transparent;box-shadow:none;">
+            <header id="chatHeader" class="chat-header" style="display:none;"></header>
 
-          <div class="chat-notice">
-            <div class="chat-notice-head">
-              <strong>DeepInfra <code>DeepSeek-V3.2</code></strong>
-              <div class="chat-notice-right">
+            <div class="chat-notice">
+              <div class="chat-notice-head">
+                <strong>DeepInfra <code>DeepSeek-V3.2</code></strong>
                 <span id="aiStatusBadge" class="ai-status waiting">연결 대기</span>
-                <div class="chat-menu-wrap">
-                  <button id="chatMenuToggle" class="chat-menu-btn" type="button" aria-label="대화 설정">
-                    <span></span><span></span><span></span>
-                  </button>
-                  <div id="chatMenuDropdown" class="chat-menu-dropdown" hidden>
-                    <button class="chat-menu-item" data-action="restart" type="button">
-                      <strong>새로하기</strong>
-                      <small>현재 내용은 자동 저장 중이에요</small>
-                    </button>
-                    <button class="chat-menu-item" data-action="delete-range" type="button">
-                      <strong>대화 삭제</strong>
-                      <small>범위를 선택해 삭제할 수 있어요</small>
-                    </button>
-                    <hr class="chat-menu-divider" />
-                    <button class="chat-menu-item" data-action="profile" type="button">
-                      <strong>대화 프로필</strong>
-                      <small>대화할 프로필을 선택해요</small>
-                    </button>
-                  </div>
-                </div>
               </div>
+              <p class="chat-notice-copy">서버 템플릿 기반으로 응답하며, 연결 실패 시에는 자동으로 목업 응답으로 전환됩니다.</p>
             </div>
-            <p class="chat-notice-copy">서버 템플릿 기반으로 응답하며, 연결 실패 시에는 자동으로 목업 응답으로 전환됩니다.</p>
+
+            <div id="chatMessages" class="chat-messages"></div>
+
+            <form id="chatComposer" class="chat-composer">
+              <textarea
+                id="chatInput"
+                rows="1"
+                placeholder="메시지를 입력하세요..."
+              ></textarea>
+              <div class="composer-actions">
+                <button class="composer-send-btn" type="submit" aria-label="전송">
+                  <svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg>
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </main>
+
+      <!-- 설정 패널 (오른쪽 슬라이드) -->
+      <aside class="card chat-sidepanel" id="chatSidepanel">
+        <div class="sidebar-head">
+          <div>
+            <span class="section-kicker">SETTINGS</span>
+            <h2>설정</h2>
           </div>
+          <button id="chatSidepanelClose" class="topbar-icon-btn" type="button" aria-label="닫기" style="font-size:1rem;">✕</button>
+        </div>
 
-          <div id="chatMessages" class="chat-messages"></div>
+        <div id="characterProfileCard" class="profile-card"></div>
 
-          <form id="chatComposer" class="chat-composer">
-            <textarea
-              id="chatInput"
-              rows="1"
-              placeholder="메시지를 입력하세요..."
-            ></textarea>
-            <div class="composer-actions">
-              <button class="composer-send-btn" type="submit" aria-label="전송">
-                <svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg>
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <aside class="card chat-sidepanel" id="chatSidepanel">
-          <div class="sidebar-head">
-            <div>
-              <span class="section-kicker">STORY STYLE</span>
-              <h2>응답 스타일</h2>
-            </div>
+        <div class="sidepanel-section">
+          <div class="sidepanel-section-head">
+            <span class="section-kicker">STORY STYLE</span>
+            <h3 style="margin:4px 0 0;font-size:0.95rem;">응답 스타일</h3>
           </div>
-
           <form id="styleForm" class="style-form">
             <label>
               <span>시점</span>
@@ -137,13 +133,32 @@
               </select>
             </label>
           </form>
+        </div>
 
-          <div id="characterProfileCard" class="profile-card"></div>
-        </aside>
-      </div>
-    </main>
+        <div class="sidepanel-section">
+          <div class="sidepanel-section-head">
+            <span class="section-kicker">MANAGE</span>
+            <h3 style="margin:4px 0 0;font-size:0.95rem;">대화 관리</h3>
+          </div>
+          <div class="sidepanel-actions">
+            <button class="button ghost small sidepanel-action-btn" data-action="restart" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              새로하기
+            </button>
+            <button class="button ghost small sidepanel-action-btn" data-action="delete-range" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              대화 삭제
+            </button>
+            <button class="button ghost small sidepanel-action-btn" data-action="profile" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              프로필 변경
+            </button>
+          </div>
+        </div>
+      </aside>
 
-    <div class="chat-overlay" id="chatOverlay"></div>
+      <div class="chat-overlay" id="chatOverlay"></div>
+    </div>
 
     <nav class="mobile-nav" aria-label="모바일 메뉴">
       <a href="index.html">
