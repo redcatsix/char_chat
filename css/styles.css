@@ -828,7 +828,10 @@ textarea::placeholder {
    Chat Page
    ══════════════════════════════════════════ */
 
+/* chat-page: Override .page's display:grid — use flex column for proper height propagation */
 .chat-page {
+  display: flex !important;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -888,10 +891,10 @@ textarea::placeholder {
 /* ── Chat Layout ── */
 
 .chat-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  height: 100%;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -994,10 +997,10 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 /* ── Chat Main ── */
 
 .chat-main {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  height: 100%;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -1047,6 +1050,7 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   display: grid;
   gap: 4px;
   font-size: 0.82rem;
+  flex-shrink: 0;
 }
 
 .chat-notice code {
@@ -1146,6 +1150,7 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+  flex: 1;
   min-height: 0;
   overscroll-behavior-y: contain;
 }
@@ -1255,6 +1260,7 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   align-items: flex-end;
   gap: 8px;
   background: var(--bg);
+  flex-shrink: 0;
 }
 
 .chat-composer textarea {
