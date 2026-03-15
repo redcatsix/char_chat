@@ -90,7 +90,10 @@ textarea {
   box-shadow: -1px 0 0 var(--border), 1px 0 0 var(--border);
 }
 
-/* 채팅 페이지: 하단 네비 위에 컴포저가 올라감 */
+/* 채팅 뷰 전환 */
+.chat-view[hidden] {
+  display: none !important;
+}
 
 /* ── Topbar (모바일 심플) ── */
 
@@ -875,41 +878,29 @@ textarea::placeholder {
   height: calc(100dvh - var(--topbar-height) - var(--safe-top) - var(--mobile-nav-height) - var(--safe-bottom));
 }
 
-.chat-sidebar,
 .chat-sidepanel {
   overflow: hidden;
 }
 
-/* ── Chat Panels: slide-in ── */
+/* ── Chat Sidepanel: slide-in from right ── */
 
-body[data-page="chat"] .chat-sidebar,
 body[data-page="chat"] .chat-sidepanel {
   position: fixed;
   top: 0;
   bottom: 0;
+  right: 0;
+  left: auto;
   width: min(320px, 85vw);
   z-index: 200;
-  transform: translateX(-100%);
+  transform: translateX(100%);
   transition: transform var(--transition-smooth);
   background: var(--panel);
-  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   overflow-y: auto;
   padding: calc(var(--safe-top) + 14px) 14px 14px;
   display: grid;
   gap: 12px;
   align-content: start;
-}
-
-body[data-page="chat"] .chat-sidepanel {
-  right: 0;
-  left: auto;
-  transform: translateX(100%);
-  border-right: none;
-  border-left: 1px solid var(--border);
-}
-
-body[data-page="chat"] .chat-sidebar.is-open {
-  transform: translateX(0);
 }
 
 body[data-page="chat"] .chat-sidepanel.is-open {
@@ -945,13 +936,6 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 
 .search-inline input {
   width: 100%;
-}
-
-.chat-character-list {
-  display: grid;
-  gap: 6px;
-  overflow-y: auto;
-  padding-right: 2px;
 }
 
 .chat-character-item {
@@ -1105,94 +1089,9 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   color: var(--muted);
 }
 
-.chat-notice-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+/* (chat-notice-right removed - hamburger gone, status in notice-head) */
 
-/* ── Chat Menu (Hamburger) ── */
-
-.chat-menu-wrap {
-  position: relative;
-}
-
-.chat-menu-btn {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 3px;
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.chat-menu-btn:active {
-  background: var(--panel-hover);
-}
-
-.chat-menu-btn span {
-  display: block;
-  width: 16px;
-  height: 2px;
-  background: var(--text-secondary);
-  border-radius: 2px;
-}
-
-.chat-menu-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 100;
-  min-width: 220px;
-  padding: 4px 0;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-lg);
-}
-
-.chat-menu-dropdown[hidden] {
-  display: none;
-}
-
-.chat-menu-item {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 10px 14px;
-  border: none;
-  background: none;
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.chat-menu-item:active {
-  background: var(--panel-hover);
-}
-
-.chat-menu-item strong {
-  font-size: 0.88rem;
-}
-
-.chat-menu-item small {
-  color: var(--muted);
-  font-size: 0.76rem;
-  margin-top: 2px;
-}
-
-.chat-menu-divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 4px 0;
-}
+/* (hamburger menu removed - actions moved to settings sidepanel) */
 
 /* ── Delete Range Mode ── */
 
@@ -1948,6 +1847,149 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
+}
+
+/* ══════════════════════════════════════════
+   Chat List View (카카오톡 스타일)
+   ══════════════════════════════════════════ */
+
+.chat-list-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(var(--safe-top) + 10px) 16px 10px;
+  background: rgba(15,17,23,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.chat-list-page {
+  padding: 0;
+  gap: 0;
+}
+
+.chat-list-search-wrap {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.chat-list-search-wrap[hidden] {
+  display: none;
+}
+
+.chat-list-items {
+  display: grid;
+  gap: 0;
+}
+
+.chat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.chat-list-item:active {
+  background: var(--panel-hover);
+}
+
+.chat-list-avatar {
+  border-radius: 50%;
+}
+
+.chat-list-item-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.chat-list-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chat-list-item-top strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-list-time {
+  color: var(--muted);
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.chat-list-preview {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-list-empty {
+  padding: 40px 16px;
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.chat-list-empty p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+/* ══════════════════════════════════════════
+   Settings Sidepanel (통합)
+   ══════════════════════════════════════════ */
+
+.sidepanel-section {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.sidepanel-section-head h3 {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+}
+
+.sidepanel-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.sidepanel-action-btn {
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.sidepanel-action-btn svg {
+  flex-shrink: 0;
 }
 
 /* ── Scrollbar ── */

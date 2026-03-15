@@ -6,7 +6,7 @@ import {
 import { updateAiStatus, showToast, escapeHtml, getFormField } from '../utils.js';
 import {
   renderChatCharacterList, renderChatHeader, renderProfileCard,
-  renderMessages, wireFavoriteButtons, wireChatLinks, renderAvatarBadge,
+  renderMessages, wireFavoriteButtons, renderAvatarBadge, renderChatListItems,
 } from '../ui.js';
 import { requestAssistantReply } from '../api.js';
 
@@ -16,82 +16,162 @@ const state = {
   sending: false,
   deleteMode: false,
   deleteStartIdx: -1,
+  view: 'list', // 'list' | 'room'
 };
 let bound = false;
 
-function closeMenu() {
-  const dropdown = document.getElementById('chatMenuDropdown');
-  if (dropdown) dropdown.hidden = true;
-}
-
 export function initChatPage(force = false, refreshPage) {
-  const messagesRoot = document.getElementById('chatMessages');
-  if (!messagesRoot) return;
+  // DOM refs - list view
+  const chatListView = document.getElementById('chatListView');
+  const chatRoomView = document.getElementById('chatRoomView');
+  const chatListItems = document.getElementById('chatListItems');
+  const chatListSearchToggle = document.getElementById('chatListSearchToggle');
+  const chatListSearchWrap = document.getElementById('chatListSearchWrap');
+  const chatListSearchInput = document.getElementById('chatListSearchInput');
 
-  const characterSearch = document.getElementById('chatCharacterSearch');
-  const listRoot = document.getElementById('chatCharacterList');
+  // DOM refs - room view
+  const messagesRoot = document.getElementById('chatMessages');
   const headerRoot = document.getElementById('chatHeader');
   const profileCard = document.getElementById('characterProfileCard');
   const styleForm = document.getElementById('styleForm');
   const composer = document.getElementById('chatComposer');
   const input = document.getElementById('chatInput');
-  const chatSidebar = document.getElementById('chatSidebar');
   const chatSidepanel = document.getElementById('chatSidepanel');
   const chatOverlay = document.getElementById('chatOverlay');
-  const sidebarToggle = document.getElementById('chatSidebarToggle');
   const settingsToggle = document.getElementById('chatSettingsToggle');
+  const sidepanelClose = document.getElementById('chatSidepanelClose');
   const chatTopbarInfo = document.getElementById('chatTopbarInfo');
-  const menuToggle = document.getElementById('chatMenuToggle');
-  const menuDropdown = document.getElementById('chatMenuDropdown');
+  const chatBackBtn = document.getElementById('chatBackBtn');
 
-  if (!state.characterId) {
-    state.characterId = getSelectedCharacter();
+  if (!chatListView || !chatRoomView) return;
+
+  let character = null;
+
+  // ── View switching ──
+  function showListView() {
+    state.view = 'list';
+    chatListView.hidden = false;
+    chatRoomView.hidden = true;
+    closePanels();
+    renderChatList();
+    // Update URL without character param
+    const url = new URL(window.location);
+    url.searchParams.delete('character');
+    window.history.replaceState({}, '', url);
   }
 
-  let character = findCharacterById(state.characterId) || getAllCharacters()[0];
-  if (!character) return;
-  state.characterId = character.id;
-  setSelectedCharacter(character.id);
-  ensureConversationInitialized(character);
+  function showRoomView(characterId) {
+    const c = findCharacterById(characterId);
+    if (!c) return;
 
-  const style = getStylePreferences(character);
-  updateAiStatus('waiting', '연결 대기');
+    state.view = 'room';
+    state.characterId = characterId;
+    character = c;
+    setSelectedCharacter(characterId);
+    ensureConversationInitialized(character);
+
+    chatListView.hidden = true;
+    chatRoomView.hidden = false;
+
+    // Sync style form
+    const style = getStylePreferences(character);
+    updateAiStatus('waiting', '연결 대기');
+    getFormField(styleForm, 'pov').value = style.pov;
+    getFormField(styleForm, 'length').value = style.length;
+    getFormField(styleForm, 'pacing').value = style.pacing;
+    getFormField(styleForm, 'tone').value = style.tone;
+
+    renderRoom(false);
+
+    // Update URL
+    const url = new URL(window.location);
+    url.searchParams.set('character', characterId);
+    window.history.replaceState({}, '', url);
+  }
 
   function closePanels() {
-    chatSidebar?.classList.remove('is-open');
     chatSidepanel?.classList.remove('is-open');
     chatOverlay?.classList.remove('is-active');
   }
 
-  // Sync form values
-  getFormField(styleForm, 'pov').value = style.pov;
-  getFormField(styleForm, 'length').value = style.length;
-  getFormField(styleForm, 'pacing').value = style.pacing;
-  getFormField(styleForm, 'tone').value = style.tone;
+  // ── Chat list rendering ──
+  function renderChatList() {
+    let filtered = null;
+    if (state.filter) {
+      filtered = getAllCharacters().filter((c) => {
+        const searchable = [c.name, c.headline, ...c.tags].join(' ').toLowerCase();
+        return searchable.includes(state.filter);
+      });
+    }
+    chatListItems.innerHTML = renderChatListItems(filtered);
 
+    // Wire up click handlers
+    chatListItems.querySelectorAll('[data-chat-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        showRoomView(btn.dataset.chatId);
+      });
+    });
+  }
+
+  // ── Chat room rendering ──
+  function renderRoom(withTyping) {
+    const liveCharacter = findCharacterById(state.characterId) || character;
+    character = liveCharacter;
+    headerRoot.innerHTML = renderChatHeader(liveCharacter);
+    profileCard.innerHTML = renderProfileCard(liveCharacter);
+    wireFavoriteButtons(headerRoot, refreshPage);
+
+    if (chatTopbarInfo) {
+      chatTopbarInfo.innerHTML = `
+        ${renderAvatarBadge(liveCharacter, { size: 30, className: 'avatar-badge' })}
+        <strong>${escapeHtml(liveCharacter.name)}</strong>
+      `;
+    }
+
+    const history = getCharacterConversation(liveCharacter.id);
+    messagesRoot.innerHTML = renderMessages(history, liveCharacter, { withTyping });
+    requestAnimationFrame(() => {
+      messagesRoot.scrollTo({ top: messagesRoot.scrollHeight, behavior: 'smooth' });
+    });
+  }
+
+  // ── Bind events (once) ──
   if (!bound) {
-    sidebarToggle?.addEventListener('click', () => {
-      closePanels();
-      chatSidebar?.classList.add('is-open');
-      chatOverlay?.classList.add('is-active');
+    // List view events
+    chatListSearchToggle?.addEventListener('click', () => {
+      const isHidden = chatListSearchWrap.hidden;
+      chatListSearchWrap.hidden = !isHidden;
+      if (!isHidden) {
+        chatListSearchInput.value = '';
+        state.filter = '';
+        renderChatList();
+      } else {
+        chatListSearchInput.focus();
+      }
+    });
+
+    chatListSearchInput?.addEventListener('input', () => {
+      state.filter = chatListSearchInput.value.trim().toLowerCase();
+      renderChatList();
+    });
+
+    // Room view events
+    chatBackBtn?.addEventListener('click', () => {
+      if (state.deleteMode) exitDeleteMode();
+      showListView();
     });
 
     settingsToggle?.addEventListener('click', () => {
-      closePanels();
       chatSidepanel?.classList.add('is-open');
       chatOverlay?.classList.add('is-active');
     });
 
+    sidepanelClose?.addEventListener('click', closePanels);
     chatOverlay?.addEventListener('click', closePanels);
-
-    characterSearch?.addEventListener('input', () => {
-      state.filter = characterSearch.value.trim().toLowerCase();
-      renderCharacterList();
-    });
 
     styleForm?.addEventListener('change', () => {
       const nextStyle = Object.fromEntries(new FormData(styleForm).entries());
-      saveStylePreferences(character.id, nextStyle);
+      if (character) saveStylePreferences(character.id, nextStyle);
       showToast('응답 스타일을 저장했어요');
     });
 
@@ -113,7 +193,7 @@ export function initChatPage(force = false, refreshPage) {
       setCharacterConversation(liveCharacter.id, nextMessages);
       input.value = '';
       state.sending = true;
-      renderMain(true);
+      renderRoom(true);
 
       const reply = await requestAssistantReply(liveCharacter, nextMessages, value, currentStyle);
       state.sending = false;
@@ -125,8 +205,7 @@ export function initChatPage(force = false, refreshPage) {
         setCharacterConversation(liveCharacter.id, finalMessages);
         updateCharacterActivity(liveCharacter.id);
       }
-      renderMain(false);
-      renderCharacterList();
+      renderRoom(false);
     });
 
     input?.addEventListener('keydown', (event) => {
@@ -136,24 +215,14 @@ export function initChatPage(force = false, refreshPage) {
       }
     });
 
-    // ── Hamburger menu toggle ──
-    menuToggle?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (menuDropdown) menuDropdown.hidden = !menuDropdown.hidden;
-    });
+    // ── Sidepanel actions (replaces hamburger menu) ──
+    chatSidepanel?.addEventListener('click', (e) => {
+      const actionBtn = e.target.closest('[data-action]');
+      if (!actionBtn) return;
 
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.chat-menu-wrap')) closeMenu();
-    });
-
-    // ── Menu actions ──
-    menuDropdown?.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-action]');
-      if (!item) return;
-      closeMenu();
-
-      const action = item.dataset.action;
+      const action = actionBtn.dataset.action;
       const liveCharacter = findCharacterById(state.characterId) || character;
+      closePanels();
 
       if (action === 'restart') {
         handleRestart(liveCharacter);
@@ -164,14 +233,21 @@ export function initChatPage(force = false, refreshPage) {
       }
     });
 
+    // Browser back button
+    window.addEventListener('popstate', () => {
+      const params = new URLSearchParams(window.location.search);
+      const charId = params.get('character');
+      if (charId) {
+        showRoomView(charId);
+      } else {
+        showListView();
+      }
+    });
+
     bound = true;
   }
 
-  if (characterSearch) {
-    characterSearch.value = state.filter || '';
-  }
-
-  // ── Restart (새로하기) ──
+  // ── Restart ──
   function handleRestart(liveCharacter) {
     if (!window.confirm('현재 대화를 버리고 새로 시작할까요?')) return;
     setCharacterConversation(liveCharacter.id, [{
@@ -181,8 +257,7 @@ export function initChatPage(force = false, refreshPage) {
       createdAt: new Date().toISOString(),
     }]);
     state.sending = false;
-    renderMain(false);
-    renderCharacterList();
+    renderRoom(false);
     showToast('대화를 새로 시작했어요');
   }
 
@@ -190,8 +265,6 @@ export function initChatPage(force = false, refreshPage) {
   function enterDeleteMode() {
     const liveCharacter = findCharacterById(state.characterId) || character;
     const history = getCharacterConversation(liveCharacter.id);
-
-    // Find first user message index (greeting and system messages can't be deleted)
     const firstDeletable = history.findIndex((m) => m.role === 'user');
     if (firstDeletable < 0) {
       showToast('삭제할 대화가 없어요');
@@ -199,9 +272,7 @@ export function initChatPage(force = false, refreshPage) {
     }
 
     state.deleteMode = true;
-    // Auto-select from firstDeletable to the end
     state.deleteStartIdx = history.length - 1;
-
     renderDeleteMode(history, liveCharacter);
   }
 
@@ -210,20 +281,17 @@ export function initChatPage(force = false, refreshPage) {
     messagesRoot.classList.add('delete-mode');
     messagesRoot.innerHTML = renderMessages(history, liveCharacter, { withTyping: false });
 
-    // Mark messages in delete range
     const messageEls = messagesRoot.querySelectorAll('.message');
     updateDeleteRangeUI(messageEls, firstDeletable, history);
 
-    // Click messages to set range start
     messageEls.forEach((el, idx) => {
-      if (idx < firstDeletable) return; // can't select greeting
+      if (idx < firstDeletable) return;
       el.addEventListener('click', () => {
         state.deleteStartIdx = idx;
         updateDeleteRangeUI(messageEls, firstDeletable, history);
       });
     });
 
-    // Add delete confirm bar
     let confirmBar = messagesRoot.parentElement.querySelector('.delete-confirm-bar');
     if (!confirmBar) {
       confirmBar = document.createElement('div');
@@ -241,7 +309,6 @@ export function initChatPage(force = false, refreshPage) {
     confirmBar.querySelector('[data-delete-confirm]').onclick = () => {
       const kept = history.slice(0, state.deleteStartIdx);
       if (kept.length === 0) {
-        // Keep at least the greeting
         setCharacterConversation(liveCharacter.id, [{
           id: cryptoRandomId(),
           role: 'assistant',
@@ -252,8 +319,7 @@ export function initChatPage(force = false, refreshPage) {
         setCharacterConversation(liveCharacter.id, kept);
       }
       exitDeleteMode();
-      renderMain(false);
-      renderCharacterList();
+      renderRoom(false);
       showToast('선택한 대화를 삭제했어요');
     };
   }
@@ -328,62 +394,20 @@ export function initChatPage(force = false, refreshPage) {
     modal.querySelectorAll('[data-select-profile]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.selectProfile;
-        state.characterId = id;
-        setSelectedCharacter(id);
-        character = findCharacterById(id) || character;
-        ensureConversationInitialized(character);
-
-        const newStyle = getStylePreferences(character);
-        getFormField(styleForm, 'pov').value = newStyle.pov;
-        getFormField(styleForm, 'length').value = newStyle.length;
-        getFormField(styleForm, 'pacing').value = newStyle.pacing;
-        getFormField(styleForm, 'tone').value = newStyle.tone;
-
         closeModal();
-        renderMain(false);
-        renderCharacterList();
-        showToast(`${character.name}(으)로 전환했어요`);
+        showRoomView(id);
+        showToast(`${findCharacterById(id)?.name || '캐릭터'}(으)로 전환했어요`);
       });
     });
   }
 
-  function renderCharacterList() {
-    const items = getAllCharacters().filter((item) => {
-      const searchable = [item.name, item.headline, ...item.tags].join(' ').toLowerCase();
-      return !state.filter || searchable.includes(state.filter);
-    });
-    listRoot.innerHTML = renderChatCharacterList(items, state.characterId);
-    wireChatLinks(listRoot);
-    listRoot.querySelectorAll('[data-open-chat-id]').forEach((link) => {
-      link.addEventListener('click', () => {
-        state.characterId = link.dataset.openChatId;
-        setSelectedCharacter(state.characterId);
-        closePanels();
-      });
-    });
+  // ── Initial routing ──
+  const params = new URLSearchParams(window.location.search);
+  const initialCharId = params.get('character') || getSelectedCharacter();
+
+  if (initialCharId && findCharacterById(initialCharId)) {
+    showRoomView(initialCharId);
+  } else {
+    showListView();
   }
-
-  function renderMain(withTyping) {
-    const liveCharacter = findCharacterById(state.characterId) || character;
-    character = liveCharacter;
-    headerRoot.innerHTML = renderChatHeader(liveCharacter);
-    profileCard.innerHTML = renderProfileCard(liveCharacter);
-    wireFavoriteButtons(headerRoot, refreshPage);
-
-    if (chatTopbarInfo) {
-      chatTopbarInfo.innerHTML = `
-        ${renderAvatarBadge(liveCharacter, { size: 30, className: 'avatar-badge' })}
-        <strong>${escapeHtml(liveCharacter.name)}</strong>
-      `;
-    }
-
-    const history = getCharacterConversation(liveCharacter.id);
-    messagesRoot.innerHTML = renderMessages(history, liveCharacter, { withTyping });
-    requestAnimationFrame(() => {
-      messagesRoot.scrollTo({ top: messagesRoot.scrollHeight, behavior: 'smooth' });
-    });
-  }
-
-  renderCharacterList();
-  renderMain(state.sending);
 }

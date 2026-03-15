@@ -342,6 +342,66 @@ export function renderChatCharacterList(characters, activeCharacterId) {
   }).join('');
 }
 
+export function formatChatTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const now = new Date();
+  const diffMs = now - date;
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffDays === 0) {
+    return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  }
+  if (diffDays === 1) return '어제';
+  if (diffDays < 7) return `${diffDays}일 전`;
+  return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+}
+
+export function renderChatListItems(characters) {
+  const allChars = getAllCharacters();
+  const items = allChars
+    .map((character) => {
+      const history = getCharacterConversation(character.id).filter((m) => m.role !== 'system');
+      if (history.length === 0) return null;
+      const last = history[history.length - 1];
+      return { character, last, updatedAt: last.createdAt };
+    })
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+  if (items.length === 0) {
+    return `
+      <div class="chat-list-empty">
+        <p>아직 대화가 없어요</p>
+        <a class="button primary small" href="explore.html">캐릭터 탐색하기</a>
+      </div>
+    `;
+  }
+
+  return items
+    .filter((item) => {
+      if (!characters) return true;
+      return characters.some((c) => c.id === item.character.id);
+    })
+    .map(({ character, last }) => {
+      const preview = last.text.length > 40 ? last.text.slice(0, 40) + '...' : last.text;
+      const time = formatChatTime(last.createdAt);
+      return `
+        <button class="chat-list-item" data-chat-id="${escapeHtml(character.id)}" type="button">
+          ${renderAvatarBadge(character, { size: 48, className: 'avatar-badge chat-list-avatar' })}
+          <div class="chat-list-item-body">
+            <div class="chat-list-item-top">
+              <strong>${escapeHtml(character.name)}</strong>
+              <span class="chat-list-time">${escapeHtml(time)}</span>
+            </div>
+            <p class="chat-list-preview">${escapeHtml(preview)}</p>
+          </div>
+        </button>
+      `;
+    }).join('');
+}
+
 export function renderChatHeader(character) {
   const favoriteActive = isFavorite(character.id);
   return `
