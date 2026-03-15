@@ -402,11 +402,13 @@ export function initChatPage(force = false, refreshPage) {
   }
 
   // ── Initial routing ──
+  // Only enter room if ?character= param is explicitly set (from external link)
+  // Clicking "대화" in bottom nav goes to chat.html without params → show list
   const params = new URLSearchParams(window.location.search);
-  const initialCharId = params.get('character') || getSelectedCharacter();
+  const explicitCharId = params.get('character');
 
-  if (initialCharId && findCharacterById(initialCharId)) {
-    showRoomView(initialCharId);
+  if (explicitCharId && findCharacterById(explicitCharId)) {
+    showRoomView(explicitCharId);
   } else {
     showListView();
   }
