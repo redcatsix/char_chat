@@ -1284,6 +1284,9 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 .composer-actions {
   flex-shrink: 0;
   padding-bottom: 1px;
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
 }
 
 .composer-send-btn {
@@ -1316,6 +1319,36 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* ── Action text (roleplay) ── */
+
+.message-bubble em.action {
+  font-style: italic;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── Asterisk insert button ── */
+
+.composer-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.06);
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  transition: var(--transition-fast);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.composer-action-btn:active {
+  transform: scale(0.9);
+  background: rgba(255,255,255,0.1);
 }
 
 /* ── Style Form ── */

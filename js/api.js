@@ -59,20 +59,22 @@ export function generateMockReply(character, userMessage, style) {
   const length = getStyleValueOrFallback(style, 'length');
 
   const segments = [];
-  segments.push(pickRandom(openers[pov]));
-  segments.push(`${pickRandom(address[tone])}, ${pickRandom(bodyMap[tone])}`);
+  segments.push(`*${pickRandom(openers[pov])}*`);
+  segments.push(pickRandom(bodyMap[tone]));
 
   if ((lengthCount[length] || 3) >= 3) {
+    segments.push(`\n*${pickRandom(address[tone])}*`);
     segments.push(buildCharacterSpecificLine(character, tone));
   }
 
   if ((lengthCount[length] || 3) >= 4) {
-    segments.push(`그리고 솔직히 말하면, 지금 이 장면은 ${character.name}답게 더 깊어질 여지가 있어.`);
+    segments.push(`\n그리고 솔직히 말하면, 지금 이 장면은 ${character.name}답게 더 깊어질 여지가 있어.`);
   }
 
+  segments.push(`\n*${pickRandom(address[tone])}*`);
   segments.push(pickRandom(closersByPacing[pacing]));
 
-  return segments.join(' ');
+  return segments.join('\n');
 }
 
 function buildCharacterSpecificLine(character, tone) {

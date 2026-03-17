@@ -215,6 +215,29 @@ export function initChatPage(force = false, refreshPage) {
       }
     });
 
+    // Asterisk button — insert * at cursor or wrap selection with *...*
+    const asteriskBtn = document.getElementById('asteriskBtn');
+    asteriskBtn?.addEventListener('click', () => {
+      if (!input) return;
+      input.focus();
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const text = input.value;
+
+      if (start !== end) {
+        // Wrap selected text with *...*
+        const selected = text.slice(start, end);
+        const replacement = `*${selected}*`;
+        input.value = text.slice(0, start) + replacement + text.slice(end);
+        input.selectionStart = start;
+        input.selectionEnd = start + replacement.length;
+      } else {
+        // Insert single * at cursor
+        input.value = text.slice(0, start) + '*' + text.slice(start);
+        input.selectionStart = input.selectionEnd = start + 1;
+      }
+    });
+
     // ── Sidepanel actions (replaces hamburger menu) ──
     chatSidepanel?.addEventListener('click', (e) => {
       const actionBtn = e.target.closest('[data-action]');

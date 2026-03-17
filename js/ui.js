@@ -277,7 +277,9 @@ export function getConversationSummaries() {
 }
 
 export function formatMessageText(text) {
-  return escapeHtml(text).replaceAll('\n', '<br />');
+  return escapeHtml(text)
+    .replace(/\*(.*?)\*/g, '<em class="action">$1</em>')
+    .replaceAll('\n', '<br />');
 }
 
 export function renderMessages(messages, character, { withTyping = false } = {}) {
