@@ -1,5 +1,6 @@
 import { DEFAULT_STYLE } from './constants.js';
 import { updateAiStatus, showToast, pickRandom, getStyleValueOrFallback } from './utils.js';
+import { getSelectedModel } from './storage.js';
 
 export function generateMockReply(character, userMessage, style) {
   const snippet = userMessage.trim().replace(/\s+/g, ' ').slice(0, 22);
@@ -101,7 +102,7 @@ export async function requestAssistantReply(character, messages, userMessage, st
     response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ character, messages, style }),
+      body: JSON.stringify({ character, messages, style, model: getSelectedModel() }),
     });
   } catch (error) {
     // Network error — fall back to mock

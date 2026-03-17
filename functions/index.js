@@ -15,6 +15,15 @@ const deepinfraApiKey = defineSecret('DEEPINFRA_API_KEY');
 const API_URL = 'https://api.deepinfra.com/v1/openai/chat/completions';
 const DEFAULT_MODEL = process.env.DEEPINFRA_MODEL || 'deepseek-ai/DeepSeek-V3.2';
 
+const ALLOWED_MODELS = new Set([
+  'deepseek-ai/DeepSeek-V3.2',
+  'meta-llama/Llama-4-Maverick-17B-128E-Instruct',
+  'Qwen/Qwen3-235B-A22B',
+  'google/gemma-3-27b-it',
+  'mistralai/Mistral-Small-24B-Instruct-2501',
+  'anthropic/claude-4-opus',
+]);
+
 const ALLOWED_ORIGINS = [
   'https://char-chat-d120d.web.app',
   'https://char-chat-d120d.firebaseapp.com',
@@ -103,8 +112,12 @@ exports.apiChat = onRequest(
       return;
     }
 
+    const requestedModel = typeof payload?.model === 'string' && ALLOWED_MODELS.has(payload.model)
+      ? payload.model
+      : DEFAULT_MODEL;
+
     const upstreamPayload = {
-      model: DEFAULT_MODEL,
+      model: requestedModel,
       messages: [
         { role: 'system', content: buildSystemPrompt(character, style) },
         ...historyMessages,
@@ -155,7 +168,7 @@ exports.apiChat = onRequest(
 
       res.status(200).json({
         reply,
-        model: data?.model || DEFAULT_MODEL,
+        model: data?.model || requestedModel,
         usage: data?.usage || null,
       });
     } catch (error) {

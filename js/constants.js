@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   chats: 'nebulaTalk:chats',
   stylePrefs: 'nebulaTalk:stylePrefs',
   selectedCharacter: 'nebulaTalk:selectedCharacter',
+  selectedModel: 'nebulaTalk:selectedModel',
 };
 
 export const DEFAULT_STYLE = {
@@ -34,6 +35,17 @@ export const STYLE_LABELS = {
     soft: '다정한 위로',
   },
 };
+
+export const MODEL_OPTIONS = [
+  { id: 'deepseek-ai/DeepSeek-V3.2', label: 'DeepSeek V3.2', desc: '빠르고 안정적 (기본)' },
+  { id: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct', label: 'Llama 4 Maverick', desc: '창의적 역할극' },
+  { id: 'Qwen/Qwen3-235B-A22B', label: 'Qwen3 235B', desc: '디테일한 묘사' },
+  { id: 'google/gemma-3-27b-it', label: 'Gemma 3 27B', desc: '자연스러운 대화' },
+  { id: 'mistralai/Mistral-Small-24B-Instruct-2501', label: 'Mistral Small', desc: '빠른 응답' },
+  { id: 'anthropic/claude-4-opus', label: 'Claude 4 Opus', desc: '최고 품질 역할극' },
+];
+
+export const DEFAULT_MODEL_ID = 'deepseek-ai/DeepSeek-V3.2';
 
 export const MAX_TAGS = 8;
 export const MAX_FEATURED = 8;
