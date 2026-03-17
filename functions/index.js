@@ -12,17 +12,42 @@ const {
 } = require('../shared/chat-logic.js');
 
 const deepinfraApiKey = defineSecret('DEEPINFRA_API_KEY');
-const API_URL = 'https://api.deepinfra.com/v1/openai/chat/completions';
+const anthropicApiKey = defineSecret('ANTHROPIC_API_KEY');
+const openaiApiKey = defineSecret('OPENAI_API_KEY');
 const DEFAULT_MODEL = process.env.DEEPINFRA_MODEL || 'deepseek-ai/DeepSeek-V3.2';
 
 const ALLOWED_MODELS = new Set([
   'deepseek-ai/DeepSeek-V3.2',
-  'meta-llama/Llama-4-Maverick-17B-128E-Instruct',
   'Qwen/Qwen3-235B-A22B',
-  'google/gemma-3-27b-it',
-  'mistralai/Mistral-Small-24B-Instruct-2501',
+  'meta-llama/Llama-4-Maverick-17B-128E-Instruct',
   'anthropic/claude-4-opus',
+  'openai/gpt-4o',
 ]);
+
+function getProviderConfig(modelId, secrets) {
+  if (modelId.startsWith('anthropic/')) {
+    return {
+      provider: 'anthropic',
+      url: 'https://api.anthropic.com/v1/messages',
+      key: secrets.anthropic,
+      model: modelId.replace('anthropic/', ''),
+    };
+  }
+  if (modelId.startsWith('openai/')) {
+    return {
+      provider: 'openai',
+      url: 'https://api.openai.com/v1/chat/completions',
+      key: secrets.openai,
+      model: modelId.replace('openai/', ''),
+    };
+  }
+  return {
+    provider: 'deepinfra',
+    url: 'https://api.deepinfra.com/v1/openai/chat/completions',
+    key: secrets.deepinfra,
+    model: modelId,
+  };
+}
 
 const ALLOWED_ORIGINS = [
   'https://char-chat-d120d.web.app',
@@ -74,7 +99,7 @@ function toReplyText(content) {
 exports.apiChat = onRequest(
   {
     region: 'us-central1',
-    secrets: [deepinfraApiKey],
+    secrets: [deepinfraApiKey, anthropicApiKey, openaiApiKey],
     timeoutSeconds: 60,
     memory: '256MiB',
   },
@@ -88,12 +113,6 @@ exports.apiChat = onRequest(
 
     if (req.method !== 'POST') {
       res.status(405).json({ error: 'Method Not Allowed' });
-      return;
-    }
-
-    const apiKey = deepinfraApiKey.value();
-    if (!apiKey) {
-      res.status(500).json({ error: 'DEEPINFRA_API_KEY secret is missing.' });
       return;
     }
 
@@ -116,29 +135,62 @@ exports.apiChat = onRequest(
       ? payload.model
       : DEFAULT_MODEL;
 
-    const upstreamPayload = {
-      model: requestedModel,
-      messages: [
-        { role: 'system', content: buildSystemPrompt(character, style) },
-        ...historyMessages,
-      ],
-      temperature: getTemperature(style),
-      max_tokens: getMaxTokens(style),
+    const secrets = {
+      deepinfra: deepinfraApiKey.value(),
+      anthropic: anthropicApiKey.value(),
+      openai: openaiApiKey.value(),
     };
+    const config = getProviderConfig(requestedModel, secrets);
 
-    if (typeof payload?.user === 'string' && payload.user.trim()) {
-      upstreamPayload.user = payload.user.trim().slice(0, 128);
+    if (!config.key) {
+      res.status(500).json({
+        error: `${config.provider.toUpperCase()} API 키가 설정되지 않았습니다.`,
+      });
+      return;
     }
 
+    const systemPrompt = buildSystemPrompt(character, style);
+    const temperature = getTemperature(style);
+    const maxTokens = getMaxTokens(style);
+
     try {
-      const upstreamResponse = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify(upstreamPayload),
-      });
+      let upstreamResponse;
+
+      if (config.provider === 'anthropic') {
+        upstreamResponse = await fetch(config.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': config.key,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: config.model,
+            max_tokens: maxTokens,
+            temperature,
+            system: systemPrompt,
+            messages: historyMessages,
+          }),
+        });
+      } else {
+        const body = {
+          model: config.model,
+          messages: [{ role: 'system', content: systemPrompt }, ...historyMessages],
+          temperature,
+          max_tokens: maxTokens,
+        };
+        if (typeof payload?.user === 'string' && payload.user.trim()) {
+          body.user = payload.user.trim().slice(0, 128);
+        }
+        upstreamResponse = await fetch(config.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${config.key}`,
+          },
+          body: JSON.stringify(body),
+        });
+      }
 
       const raw = await upstreamResponse.text();
       let data = {};
@@ -151,7 +203,7 @@ exports.apiChat = onRequest(
       if (!upstreamResponse.ok) {
         const errorMessage = typeof data?.error === 'string'
           ? data.error
-          : data?.error?.message || 'DeepInfra request failed.';
+          : data?.error?.message || `${config.provider} request failed.`;
 
         res.status(upstreamResponse.status).json({
           error: errorMessage,
@@ -160,9 +212,18 @@ exports.apiChat = onRequest(
         return;
       }
 
-      const reply = toReplyText(data?.choices?.[0]?.message?.content);
+      let reply;
+      if (config.provider === 'anthropic') {
+        const content = data?.content;
+        reply = Array.isArray(content)
+          ? content.map((b) => b?.text || '').join('').trim()
+          : '';
+      } else {
+        reply = toReplyText(data?.choices?.[0]?.message?.content);
+      }
+
       if (!reply) {
-        res.status(502).json({ error: 'DeepInfra returned an empty response.', detail: data });
+        res.status(502).json({ error: 'AI가 빈 응답을 반환했습니다.', detail: data });
         return;
       }
 
@@ -173,7 +234,7 @@ exports.apiChat = onRequest(
       });
     } catch (error) {
       res.status(502).json({
-        error: `Failed to reach DeepInfra: ${error.message}`,
+        error: `${config.provider} 연결 실패: ${error.message}`,
       });
     }
   },
