@@ -9,7 +9,7 @@ const {
   getMaxTokens,
   getTemperature,
   normalizeChatMessage,
-} = require('../shared/chat-logic.js');
+} = require('./shared/chat-logic.js');
 
 const deepinfraApiKey = defineSecret('DEEPINFRA_API_KEY');
 const API_URL = 'https://api.deepinfra.com/v1/openai/chat/completions';
