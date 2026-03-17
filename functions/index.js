@@ -17,6 +17,7 @@ const DEFAULT_MODEL = process.env.DEEPINFRA_MODEL || 'deepseek-ai/DeepSeek-V3.2'
 
 const ALLOWED_MODELS = new Set([
   'deepseek-ai/DeepSeek-V3.2',
+  'anthropic/claude-4-opus',
   'Qwen/Qwen3-235B-A22B',
   'meta-llama/Llama-4-Maverick-17B-128E-Instruct',
   'google/gemma-3-27b-it',

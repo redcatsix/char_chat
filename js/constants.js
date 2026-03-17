@@ -38,6 +38,7 @@ export const STYLE_LABELS = {
 
 export const MODEL_OPTIONS = [
   { id: 'deepseek-ai/DeepSeek-V3.2', label: 'DeepSeek V3.2', desc: '빠르고 자연스러운 한국어 (기본)' },
+  { id: 'anthropic/claude-4-opus', label: 'Claude 4 Opus', desc: '최고 품질 역할극, 정교한 한국어' },
   { id: 'Qwen/Qwen3-235B-A22B', label: 'Qwen3 235B', desc: '아시아 언어 특화, 섬세한 묘사' },
   { id: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct', label: 'Llama 4 Maverick', desc: '창의적이고 자유로운 전개' },
   { id: 'google/gemma-3-27b-it', label: 'Gemma 3 27B', desc: '가볍고 빠른 응답' },
