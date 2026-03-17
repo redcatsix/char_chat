@@ -21,40 +21,16 @@ loadLocalEnv();
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
+const API_URL = 'https://api.deepinfra.com/v1/openai/chat/completions';
 const DEFAULT_MODEL = process.env.DEEPINFRA_MODEL || 'deepseek-ai/DeepSeek-V3.2';
 
 const ALLOWED_MODELS = new Set([
   'deepseek-ai/DeepSeek-V3.2',
+  'anthropic/claude-4-opus',
   'Qwen/Qwen3-235B-A22B',
   'meta-llama/Llama-4-Maverick-17B-128E-Instruct',
-  'anthropic/claude-4-opus',
-  'openai/gpt-4o',
+  'google/gemma-3-27b-it',
 ]);
-
-function getProviderConfig(modelId) {
-  if (modelId.startsWith('anthropic/')) {
-    return {
-      provider: 'anthropic',
-      url: 'https://api.anthropic.com/v1/messages',
-      key: process.env.ANTHROPIC_API_KEY,
-      model: modelId.replace('anthropic/', ''),
-    };
-  }
-  if (modelId.startsWith('openai/')) {
-    return {
-      provider: 'openai',
-      url: 'https://api.openai.com/v1/chat/completions',
-      key: process.env.OPENAI_API_KEY,
-      model: modelId.replace('openai/', ''),
-    };
-  }
-  return {
-    provider: 'deepinfra',
-    url: 'https://api.deepinfra.com/v1/openai/chat/completions',
-    key: process.env.DEEPINFRA_API_KEY,
-    model: modelId,
-  };
-}
 
 // Rate limiting: per-IP sliding window
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -257,6 +233,14 @@ async function handleChatRequest(req, res) {
     return;
   }
 
+  const apiKey = process.env.DEEPINFRA_API_KEY;
+  if (!apiKey) {
+    sendJson(res, 500, {
+      error: 'DEEPINFRA_API_KEY is missing. Add it to .env or environment variables.',
+    });
+    return;
+  }
+
   let payload;
   try {
     payload = await readJsonBody(req);
@@ -282,32 +266,36 @@ async function handleChatRequest(req, res) {
     ? payload.model
     : DEFAULT_MODEL;
 
-  const config = getProviderConfig(requestedModel);
+  const upstreamPayload = {
+    model: requestedModel,
+    messages: [
+      { role: 'system', content: buildSystemPrompt(character, style) },
+      ...historyMessages,
+    ],
+    temperature: getTemperature(style),
+    max_tokens: getMaxTokens(style),
+  };
 
-  if (!config.key) {
-    sendJson(res, 500, {
-      error: `${config.provider.toUpperCase()} API 키가 설정되지 않았습니다. .env에 추가해주세요.`,
-    });
-    return;
+  if (typeof payload?.user === 'string' && payload.user.trim()) {
+    upstreamPayload.user = payload.user.trim().slice(0, 128);
   }
-
-  const systemPrompt = buildSystemPrompt(character, style);
-  const temperature = getTemperature(style);
-  const maxTokens = getMaxTokens(style);
 
   let upstream;
   try {
-    if (config.provider === 'anthropic') {
-      upstream = await fetchAnthropic(config, systemPrompt, historyMessages, temperature, maxTokens);
-    } else {
-      upstream = await fetchOpenAICompatible(config, systemPrompt, historyMessages, temperature, maxTokens, payload?.user);
-    }
+    upstream = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(upstreamPayload),
+    });
   } catch (error) {
-    sendJson(res, 502, { error: `${config.provider} 연결 실패: ${error.message}` });
+    sendJson(res, 502, { error: `DeepInfra 연결 실패: ${error.message}` });
     return;
   }
 
-  const raw = await upstream.response.text();
+  const raw = await upstream.text();
   let data = {};
   try {
     data = raw ? JSON.parse(raw) : {};
@@ -315,25 +303,15 @@ async function handleChatRequest(req, res) {
     data = { raw };
   }
 
-  if (!upstream.response.ok) {
+  if (!upstream.ok) {
     const message = typeof data?.error === 'string'
       ? data.error
-      : data?.error?.message || `${config.provider} request failed.`;
-    sendJson(res, upstream.response.status, { error: message, detail: data });
+      : data?.error?.message || 'DeepInfra request failed.';
+    sendJson(res, upstream.status, { error: message, detail: data });
     return;
   }
 
-  // Extract reply based on provider
-  let reply;
-  if (config.provider === 'anthropic') {
-    const content = data?.content;
-    reply = Array.isArray(content)
-      ? content.map((b) => b?.text || '').join('').trim()
-      : '';
-  } else {
-    reply = data?.choices?.[0]?.message?.content;
-  }
-
+  const reply = data?.choices?.[0]?.message?.content;
   if (typeof reply !== 'string' || !reply.trim()) {
     sendJson(res, 502, { error: 'AI가 빈 응답을 반환했습니다.', detail: data });
     return;
@@ -344,47 +322,6 @@ async function handleChatRequest(req, res) {
     model: data?.model || requestedModel,
     usage: data?.usage || null,
   });
-}
-
-async function fetchOpenAICompatible(config, systemPrompt, messages, temperature, maxTokens, user) {
-  const body = {
-    model: config.model,
-    messages: [{ role: 'system', content: systemPrompt }, ...messages],
-    temperature,
-    max_tokens: maxTokens,
-  };
-  if (typeof user === 'string' && user.trim()) {
-    body.user = user.trim().slice(0, 128);
-  }
-  const response = await fetch(config.url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.key}`,
-    },
-    body: JSON.stringify(body),
-  });
-  return { response };
-}
-
-async function fetchAnthropic(config, systemPrompt, messages, temperature, maxTokens) {
-  const body = {
-    model: config.model,
-    max_tokens: maxTokens,
-    temperature,
-    system: systemPrompt,
-    messages,
-  };
-  const response = await fetch(config.url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': config.key,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify(body),
-  });
-  return { response };
 }
 
 const server = http.createServer(async (req, res) => {
