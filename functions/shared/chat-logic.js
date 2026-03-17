@@ -45,6 +45,32 @@ function validateStyle(style) {
   return validated;
 }
 
+const POV_INSTRUCTIONS = {
+  first: '반드시 1인칭 시점("나")으로 서술한다. 캐릭터 자신의 내면과 감각을 직접 묘사한다.',
+  second: '반드시 2인칭 시점("너")으로 서술한다. 상대방의 행동과 감정을 "너는 ~했다" 형태로 묘사한다.',
+  third: '반드시 3인칭 시점으로 서술한다. 캐릭터를 이름이나 "그/그녀"로 지칭한다.',
+};
+
+const LENGTH_INSTRUCTIONS = {
+  short: '응답은 2~3문장으로 짧고 간결하게 작성한다. 핵심 대사와 최소한의 지문만 사용한다.',
+  medium: '응답은 4~6문장 정도로 적당한 분량을 유지한다.',
+  long: '응답은 7문장 이상으로 풍부하게 작성한다. 감정 묘사, 배경, 내면 독백을 상세히 포함한다.',
+};
+
+const PACING_INSTRUCTIONS = {
+  fast: '전개를 빠르게 진행한다. 사건이 즉시 일어나고, 대화 턴마다 상황이 확실히 변화한다.',
+  natural: '자연스러운 속도로 전개한다. 감정과 상황이 유기적으로 흘러간다.',
+  slow: '전개를 천천히 진행한다. 감정의 미세한 변화, 분위기, 침묵의 순간을 섬세하게 묘사한다.',
+};
+
+const TONE_INSTRUCTIONS = {
+  romance: '로맨틱한 톤을 유지한다. 설렘, 긴장감, 감정의 밀당을 담아 표현한다.',
+  slice: '일상적이고 편안한 톤으로 대화한다. 자연스러운 일상 묘사와 소소한 감정을 살린다.',
+  mystery: '미스터리한 톤을 유지한다. 의미심장한 암시, 긴장감, 숨겨진 단서를 녹여낸다.',
+  fantasy: '판타지 톤을 유지한다. 세계관에 맞는 묘사와 마법적/신비로운 분위기를 살린다.',
+  soft: '다정하고 위로하는 톤으로 대화한다. 부드러운 말투와 공감, 안정감을 전달한다.',
+};
+
 function buildSystemPrompt(character, style) {
   const name = sanitizeString(character?.name, MAX_CHARACTER_NAME_LENGTH) || '이름 미상';
   const headline = sanitizeString(character?.headline, 200) || '소개 없음';
@@ -55,6 +81,11 @@ function buildSystemPrompt(character, style) {
     ? character.tags.filter((t) => typeof t === 'string').slice(0, 8).join(', ')
     : '';
   const visibility = character?.visibility === 'private' ? 'private' : 'public';
+
+  const pov = style?.pov || 'third';
+  const length = style?.length || 'medium';
+  const pacing = style?.pacing || 'natural';
+  const tone = style?.tone || 'romance';
 
   return [
     '너는 캐릭터챗 전용 AI다.',
@@ -77,11 +108,11 @@ function buildSystemPrompt(character, style) {
     '',
     '*한 발짝 다가서며 눈을 맞춘다*',
     '그런 표정 짓지 마. 내가 옆에 있잖아.',
-    '[응답 스타일]',
-    `시점: ${getStyleLabel(style, 'pov', 'third')}`,
-    `길이: ${getStyleLabel(style, 'length', 'medium')}`,
-    `전개 속도: ${getStyleLabel(style, 'pacing', 'natural')}`,
-    `톤: ${getStyleLabel(style, 'tone', 'romance')}`,
+    '[응답 스타일 — 아래 지시를 반드시 따른다]',
+    `● 시점: ${POV_INSTRUCTIONS[pov]}`,
+    `● 길이: ${LENGTH_INSTRUCTIONS[length]}`,
+    `● 전개 속도: ${PACING_INSTRUCTIONS[pacing]}`,
+    `● 톤: ${TONE_INSTRUCTIONS[tone]}`,
     '대화 기록을 이어서 자연스럽게 응답한다.',
   ].join('\n');
 }
