@@ -1,4 +1,4 @@
-import { STORAGE_KEYS, DEFAULT_STYLE } from './constants.js';
+import { STORAGE_KEYS, DEFAULT_STYLE, DEFAULT_MODEL_ID } from './constants.js';
 import { DEFAULT_CHARACTERS } from './characters.js';
 import { getCoverImage, deleteCoverImage } from './image-store.js';
 
@@ -181,6 +181,14 @@ export function getStylePreferences(character) {
     ...(character?.style || {}),
     ...(prefs[character?.id] || {}),
   };
+}
+
+export function getSelectedModel() {
+  return localStorage.getItem(STORAGE_KEYS.selectedModel) || DEFAULT_MODEL_ID;
+}
+
+export function setSelectedModel(modelId) {
+  localStorage.setItem(STORAGE_KEYS.selectedModel, modelId);
 }
 
 export function saveStylePreferences(characterId, style) {

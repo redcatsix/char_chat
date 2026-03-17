@@ -2,7 +2,9 @@ import {
   findCharacterById, getAllCharacters, getSelectedCharacter, setSelectedCharacter,
   ensureConversationInitialized, getCharacterConversation, setCharacterConversation,
   getStylePreferences, saveStylePreferences, cryptoRandomId, updateCharacterActivity,
+  getSelectedModel, setSelectedModel,
 } from '../storage.js';
+import { MODEL_OPTIONS } from '../constants.js';
 import { updateAiStatus, showToast, escapeHtml, getFormField } from '../utils.js';
 import {
   renderChatCharacterList, renderChatHeader, renderProfileCard,
@@ -42,6 +44,31 @@ export function initChatPage(force = false, refreshPage) {
   const sidepanelClose = document.getElementById('chatSidepanelClose');
   const chatTopbarInfo = document.getElementById('chatTopbarInfo');
   const chatBackBtn = document.getElementById('chatBackBtn');
+
+  // DOM refs - model select
+  const modelSelect = document.getElementById('modelSelect');
+  const modelDesc = document.getElementById('modelDesc');
+  const chatNoticeHead = document.querySelector('.chat-notice-head strong');
+
+  // Populate model dropdown
+  if (modelSelect && modelSelect.options.length === 0) {
+    MODEL_OPTIONS.forEach((m) => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.label;
+      modelSelect.appendChild(opt);
+    });
+    modelSelect.value = getSelectedModel();
+    updateModelDesc();
+  }
+
+  function updateModelDesc() {
+    const selected = MODEL_OPTIONS.find((m) => m.id === (modelSelect?.value || getSelectedModel()));
+    if (modelDesc) modelDesc.textContent = selected?.desc || '';
+    if (chatNoticeHead) {
+      chatNoticeHead.innerHTML = `${selected?.label || 'AI'} <code>${selected?.id || ''}</code>`;
+    }
+  }
 
   if (!chatListView || !chatRoomView) return;
 
@@ -168,6 +195,12 @@ export function initChatPage(force = false, refreshPage) {
 
     sidepanelClose?.addEventListener('click', closePanels);
     chatOverlay?.addEventListener('click', closePanels);
+
+    modelSelect?.addEventListener('change', () => {
+      setSelectedModel(modelSelect.value);
+      updateModelDesc();
+      showToast('AI 모델을 변경했어요');
+    });
 
     styleForm?.addEventListener('change', () => {
       const nextStyle = Object.fromEntries(new FormData(styleForm).entries());
