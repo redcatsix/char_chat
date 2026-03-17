@@ -77,7 +77,7 @@ function showCharacterActionSheet(character, { onEdit, onDelete, onChat }) {
   sheet.setAttribute('aria-modal', 'true');
   sheet.innerHTML = `
     <div class="profile-modal-backdrop"></div>
-    <div class="profile-modal-content" style="max-width:480px;">
+    <div class="profile-modal-content" style="max-width:530px;">
       <button class="profile-modal-close" type="button" aria-label="닫기">✕</button>
       ${thumb
         ? `<div class="profile-modal-cover"><img src="${escapeHtml(thumb)}" alt="${escapeHtml(character.name)}" /></div>`
