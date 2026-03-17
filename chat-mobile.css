@@ -9,7 +9,7 @@ body[data-page="chat"] .topbar {
 }
 
 body[data-page="chat"] .app-shell {
-  max-width: 480px;
+  max-width: 530px;
   min-height: 100vh;
   margin: 0 auto;
   padding: 8px 8px 88px;
@@ -318,7 +318,7 @@ body[data-page="chat"] .mobile-nav {
   right: auto;
   bottom: 8px;
   width: calc(100% - 16px);
-  max-width: 480px;
+  max-width: 530px;
   transform: translateX(-50%);
   z-index: 1200;
   border: 1px solid #dbe3f1;
@@ -337,6 +337,6 @@ body[data-page="chat"] .mobile-nav a.is-active {
 
 @media (min-width: 941px) {
   body[data-page="chat"] .app-shell {
-    max-width: 480px;
+    max-width: 530px;
   }
 }

@@ -82,7 +82,7 @@ textarea {
 
 .app-shell {
   width: 100%;
-  max-width: 480px;
+  max-width: 530px;
   margin: 0 auto;
   padding: 0 0 calc(var(--mobile-nav-height) + var(--safe-bottom));
   position: relative;
@@ -103,7 +103,7 @@ textarea {
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 480px;
+  max-width: 530px;
   height: calc(100dvh - var(--mobile-nav-height) - var(--safe-bottom));
   display: flex;
   flex-direction: column;
@@ -1755,7 +1755,7 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 .profile-modal-content {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 530px;
   max-height: 85vh;
   overflow-y: auto;
   background: var(--panel);
@@ -1847,7 +1847,7 @@ body[data-page="chat"] .chat-sidepanel.is-open {
 .bottom-sheet-content {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 530px;
   max-height: 70vh;
   overflow-y: auto;
   background: var(--panel);
@@ -1873,7 +1873,7 @@ body[data-page="chat"] .chat-sidepanel.is-open {
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 480px;
+  max-width: 530px;
   bottom: 0;
   z-index: 110;
   display: flex;

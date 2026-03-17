@@ -2,7 +2,7 @@ import {
   findCharacterById, getAllCharacters, getSelectedCharacter, setSelectedCharacter,
   ensureConversationInitialized, getCharacterConversation, setCharacterConversation,
   getStylePreferences, saveStylePreferences, cryptoRandomId, updateCharacterActivity,
-  getSelectedModel, setSelectedModel,
+  getSelectedModel, setSelectedModel, resolveIdbCovers,
 } from '../storage.js';
 import { MODEL_OPTIONS } from '../constants.js';
 import { updateAiStatus, showToast, escapeHtml, getFormField } from '../utils.js';
@@ -87,7 +87,7 @@ export function initChatPage(force = false, refreshPage) {
     window.history.replaceState({}, '', url);
   }
 
-  function showRoomView(characterId) {
+  async function showRoomView(characterId) {
     const c = findCharacterById(characterId);
     if (!c) return;
 
@@ -99,6 +99,9 @@ export function initChatPage(force = false, refreshPage) {
 
     chatListView.hidden = true;
     chatRoomView.hidden = false;
+
+    // Resolve IndexedDB cover images before rendering
+    await resolveIdbCovers([character]);
 
     // Sync style form
     const style = getStylePreferences(character);
@@ -122,10 +125,12 @@ export function initChatPage(force = false, refreshPage) {
   }
 
   // ── Chat list rendering ──
-  function renderChatList() {
+  async function renderChatList() {
+    const allChars = getAllCharacters();
+    await resolveIdbCovers(allChars);
     let filtered = null;
     if (state.filter) {
-      filtered = getAllCharacters().filter((c) => {
+      filtered = allChars.filter((c) => {
         const searchable = [c.name, c.headline, ...c.tags].join(' ').toLowerCase();
         return searchable.includes(state.filter);
       });

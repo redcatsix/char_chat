@@ -30,7 +30,7 @@ body::before {
 
 .app-shell {
   width: 100%;
-  max-width: 480px;
+  max-width: 530px;
   min-height: 100vh;
   margin: 0 auto;
   padding: 8px 8px 88px;
@@ -80,7 +80,7 @@ body::before {
   left: 50%;
   bottom: 8px;
   width: calc(100% - 16px);
-  max-width: 480px;
+  max-width: 530px;
   transform: translateX(-50%);
   z-index: 1200;
   display: flex !important;
@@ -266,7 +266,7 @@ body::before {
 
 /* Chat page baseline (detail styles in chat-mobile.css) */
 body[data-page="chat"] .app-shell {
-  max-width: 480px;
+  max-width: 530px;
 }
 
 /* Create manager (2-column cards + modal editor) */
@@ -407,7 +407,7 @@ body[data-page="chat"] .app-shell {
 
 .editor-sheet {
   position: relative;
-  width: min(100%, 480px);
+  width: min(100%, 530px);
   max-height: 86vh;
   overflow: auto;
   background: #fff;
