@@ -37,6 +37,10 @@ export function getChats() {
   return getStoredObject(STORAGE_KEYS.chats);
 }
 
+export function getOnboardingSessions() {
+  return getStoredObject(STORAGE_KEYS.onboardingSessions);
+}
+
 export function getCharacterConversation(characterId) {
   const chats = getChats();
   return Array.isArray(chats[characterId]) ? chats[characterId] : [];
@@ -46,6 +50,70 @@ export function setCharacterConversation(characterId, messages) {
   const chats = getChats();
   chats[characterId] = messages;
   setStoredObject(STORAGE_KEYS.chats, chats);
+}
+
+function normalizeOnboardingChoices(choices) {
+  if (!Array.isArray(choices)) return [];
+  return choices
+    .map((choice, index) => ({
+      id: typeof choice?.id === 'string' && choice.id.trim()
+        ? choice.id.trim().slice(0, 48)
+        : `choice_${index + 1}`,
+      label: typeof choice?.label === 'string'
+        ? choice.label.trim().slice(0, 80)
+        : '',
+      value: typeof choice?.value === 'string'
+        ? choice.value.trim().slice(0, 200)
+        : '',
+    }))
+    .filter((choice) => choice.label && choice.value)
+    .slice(0, 5);
+}
+
+function normalizeOnboardingSession(session) {
+  if (!session || typeof session !== 'object') return null;
+  const worldSummary = session.worldSummary && typeof session.worldSummary === 'object'
+    ? Object.fromEntries(
+      Object.entries(session.worldSummary)
+        .filter(([key, value]) => typeof key === 'string' && typeof value === 'string')
+        .map(([key, value]) => [key.slice(0, 40), value.slice(0, 300)])
+    )
+    : {};
+
+  return {
+    active: Boolean(session.active),
+    complete: Boolean(session.complete),
+    step: Number.isFinite(session.step) ? Math.max(0, Math.min(20, Math.floor(session.step))) : 0,
+    question: typeof session.question === 'string' ? session.question.slice(0, 500) : '',
+    choices: normalizeOnboardingChoices(session.choices),
+    allowDirectInput: session.allowDirectInput !== false,
+    worldSummary,
+    updatedAt: typeof session.updatedAt === 'string' ? session.updatedAt : new Date().toISOString(),
+  };
+}
+
+export function getOnboardingSession(characterId) {
+  const sessions = getOnboardingSessions();
+  return normalizeOnboardingSession(sessions?.[characterId]) || null;
+}
+
+export function saveOnboardingSession(characterId, session) {
+  if (!characterId) return;
+  const sessions = getOnboardingSessions();
+  const normalized = normalizeOnboardingSession(session);
+  if (!normalized) {
+    delete sessions[characterId];
+  } else {
+    sessions[characterId] = normalized;
+  }
+  setStoredObject(STORAGE_KEYS.onboardingSessions, sessions);
+}
+
+export function clearOnboardingSession(characterId) {
+  if (!characterId) return;
+  const sessions = getOnboardingSessions();
+  delete sessions[characterId];
+  setStoredObject(STORAGE_KEYS.onboardingSessions, sessions);
 }
 
 export function getCharacterActivityTime(character) {
@@ -86,6 +154,10 @@ export function removeCreatedCharacter(id) {
   const chats = getChats();
   delete chats[id];
   setStoredObject(STORAGE_KEYS.chats, chats);
+
+  const sessions = getOnboardingSessions();
+  delete sessions[id];
+  setStoredObject(STORAGE_KEYS.onboardingSessions, sessions);
 
   const favorites = getFavorites().filter((favoriteId) => favoriteId !== id);
   setStoredArray(STORAGE_KEYS.favorites, favorites);

@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   chats: 'nebulaTalk:chats',
   stylePrefs: 'nebulaTalk:stylePrefs',
   selectedCharacter: 'nebulaTalk:selectedCharacter',
+  onboardingSessions: 'nebulaTalk:onboardingSessions',
 };
 
 export const DEFAULT_STYLE = {

@@ -91,14 +91,41 @@ function buildCharacterSpecificLine(character, tone) {
   return `${character.name}은 감정을 쉽게 드러내지 않지만, 지금만큼은 네 말에 분명히 반응하고 있어.`;
 }
 
-export async function requestAssistantReply(character, messages, userMessage, style) {
+export async function requestAssistantReply({
+  character,
+  messages,
+  userMessage = '',
+  style,
+  mode = 'chat',
+  onboardingState = null,
+  userInputType = 'text',
+  selectedChoiceId = '',
+  directInputText = '',
+} = {}) {
   updateAiStatus('checking', 'AI 연결 확인 중');
+
+  const requestPayload = {
+    character,
+    messages,
+    style,
+    mode,
+    onboardingState,
+  };
+
+  if (mode === 'onboarding') {
+    requestPayload.userInputType = userInputType === 'button' ? 'button' : 'text';
+    requestPayload.selectedChoiceId = selectedChoiceId;
+    requestPayload.directInputText = directInputText;
+    if (typeof directInputText === 'string' && directInputText.trim()) {
+      requestPayload.user = directInputText.trim().slice(0, 128);
+    }
+  }
 
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ character, messages, style }),
+      body: JSON.stringify(requestPayload),
     });
 
     const payload = await response.json().catch(() => ({}));
@@ -111,12 +138,33 @@ export async function requestAssistantReply(character, messages, userMessage, st
     }
 
     updateAiStatus('online', 'DeepInfra 연결됨');
-    return payload.reply.trim();
+    return {
+      reply: payload.reply.trim(),
+      mode: payload?.mode === 'onboarding' ? 'onboarding' : 'chat',
+      onboarding: payload?.onboarding && typeof payload.onboarding === 'object'
+        ? payload.onboarding
+        : null,
+      model: payload?.model || null,
+      usage: payload?.usage || null,
+      usedFallback: false,
+    };
   } catch (error) {
     console.error('[chat-api]', error);
+    if (mode === 'onboarding') {
+      updateAiStatus('fallback', '온보딩 재시도 필요');
+      throw error;
+    }
+
     updateAiStatus('fallback', '백업 응답 모드');
     showToast('API 오류로 목업 응답을 사용해요');
     await new Promise((resolve) => setTimeout(resolve, 500));
-    return generateMockReply(character, userMessage, style);
+    return {
+      reply: generateMockReply(character, userMessage, style),
+      mode: 'chat',
+      onboarding: onboardingState && typeof onboardingState === 'object' ? onboardingState : null,
+      model: null,
+      usage: null,
+      usedFallback: true,
+    };
   }
 }

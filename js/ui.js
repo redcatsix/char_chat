@@ -372,3 +372,23 @@ export function renderProfileCard(character) {
     </div>
   `;
 }
+
+export function renderWorldSummaryCard(worldSummary) {
+  const entries = Object.entries(worldSummary || {}).filter(([, value]) => typeof value === 'string' && value.trim());
+  if (!entries.length) return '';
+
+  return `
+    <div class="world-summary-head">
+      <strong>세션 세계관 요약</strong>
+      <small>이번 대화에만 적용됩니다</small>
+    </div>
+    <div class="world-summary-list">
+      ${entries.map(([key, value]) => `
+        <div class="world-summary-item">
+          <span>${escapeHtml(key)}</span>
+          <p>${escapeHtml(value)}</p>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}

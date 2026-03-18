@@ -46,8 +46,31 @@
               <strong>DeepInfra <code>deepseek-ai/DeepSeek-V3.2</code></strong>
               <span id="aiStatusBadge" class="ai-status waiting">연결 대기</span>
             </div>
-            <p class="chat-notice-copy">서버 템플릿 기반으로 응답하며, 연결 실패 시에는 자동으로 목업 응답으로 전환됩니다.</p>
+            <p class="chat-notice-copy">서버 템플릿 기반으로 응답하며, 일반 채팅에서 연결 실패 시에는 자동으로 목업 응답으로 전환됩니다.</p>
           </div>
+
+          <section id="worldSummaryCard" class="world-summary-card is-hidden"></section>
+
+          <section id="onboardingPanel" class="onboarding-panel is-hidden" aria-live="polite">
+            <div class="onboarding-head">
+              <strong>세계관 설정 온보딩</strong>
+              <small>선택지 또는 직접 입력으로 진행할 수 있어요</small>
+            </div>
+            <p id="onboardingQuestion" class="onboarding-question"></p>
+            <div id="onboardingChoices" class="onboarding-choice-grid"></div>
+            <form id="onboardingDirectForm" class="onboarding-direct-form">
+              <input
+                id="onboardingDirectInput"
+                type="text"
+                placeholder="직접 입력 (예: 알아서 설정해줘)"
+                autocomplete="off"
+              />
+              <button class="button primary small" type="submit">입력 전송</button>
+            </form>
+            <button id="onboardingRetryBtn" class="button ghost small onboarding-retry is-hidden" type="button">
+              마지막 요청 재시도
+            </button>
+          </section>
 
           <div id="chatMessages" class="chat-messages"></div>
 
